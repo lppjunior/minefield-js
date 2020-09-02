@@ -1,11 +1,11 @@
-import { VALUES } from '../config'
+import { CHECKER } from '../config'
 
 export default {
   updateValue: function (row, col, value) {
     this.state.setValue(row, col, value)
     this.state.get('updated').push({ row, col, value })
 
-    if ([VALUES.EMPTY, VALUES.FLAG, VALUES.MINE].indexOf(value) === -1) {
+    if ([CHECKER.EMPTY, CHECKER.FLAG, CHECKER.MINE].indexOf(value) === -1) {
       this.state.set('checked', this.state.get('checked') + 1)
     }
   },
@@ -22,7 +22,7 @@ export default {
   open: function (row, col) {
     this.state.set('updated', [])
 
-    if (this.state.getValue(row, col) === VALUES.EMPTY) {
+    if (this.state.getValue(row, col) === CHECKER.EMPTY) {
       const value = this.board[row][col]
 
       this.updateValue(row, col, value)
@@ -39,8 +39,8 @@ export default {
     this.state.set('updated', [])
 
     const lastValue = this.state.getValue(row, col)
-    if ([VALUES.FLAG, VALUES.EMPTY].indexOf(lastValue) > -1) {
-      this.updateValue(row, col, lastValue === VALUES.FLAG ? VALUES.EMPTY : VALUES.FLAG)
+    if ([CHECKER.FLAG, CHECKER.EMPTY].indexOf(lastValue) > -1) {
+      this.updateValue(row, col, lastValue === CHECKER.FLAG ? CHECKER.EMPTY : CHECKER.FLAG)
     }
 
     this.nextTurn()
@@ -51,8 +51,8 @@ export default {
       for (let col = parentCol - 1; col <= parentCol + 1; col++) {
         if (this.board[row] !== undefined
             && this.board[row][col] !== undefined
-            && this.board[row][col] === VALUES.NUMBER_0
-            && this.state.get('board')[row][col] === VALUES.EMPTY) {
+            && this.board[row][col] === CHECKER.NUMBER_0
+            && this.state.get('board')[row][col] === CHECKER.EMPTY) {
           this.updateValue(row, col, 0)
           this.expand(row, col)
         }

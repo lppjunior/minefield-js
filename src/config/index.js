@@ -7,16 +7,16 @@ import {
 } from './event'
 
 import {
-  VALUES
-} from './values'
-
-import {
   STATUS
 } from './status'
+
+import {
+  CHECKER
+} from './values'
 
 export {
   DEFAULTS,
   EVENT,
   STATUS,
-  VALUES
+  CHECKER
 }

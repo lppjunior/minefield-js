@@ -1,7 +1,7 @@
-export const VALUES = {
-  MINE: -1,
+export const CHECKER = {
   EMPTY: '',
   FLAG: 'F',
+  MINE: -1,
   NUMBER_0: 0,
   NUMBER_1: 2,
   NUMBER_2: 3,

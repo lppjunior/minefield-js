@@ -6,6 +6,8 @@ class MinefieldController {
       .addListener(game.FINISH, (data) => this.finish(data))
       .start()
 
+    this.STATUS = game.STATUS
+
     this.click = (event) => {
       event = event || window.event
 
@@ -76,12 +78,10 @@ class MinefieldController {
   finish(state) {
     this.state = state
 
-    if (state.status === 'loss') {
+    if (state.status === this.STATUS.LOSS) {
       console.log('===> LOSS')
-      return
-    } else if (state.status === 'loss') {
+    } else if (state.status === this.STATUS.WIN) {
       console.log('===> GAIN')
-      return
     }
 
     console.error('Finish', state)
