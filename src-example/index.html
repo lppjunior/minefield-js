@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title><%= htmlWebpackPlugin.options.title %></title>
+
+    <style>
+      td {
+        position: relative;
+        width: 20px;
+        height: 20px;
+      }
+
+      td.closed {
+        background-color: #f5f5f5;
+      }
+
+      td.number {
+        background-color: green;
+      }
+
+      td.mine {
+        background-color: red;
+      }
+
+      td.flag {
+        background-color: purple;
+      }
+
+      td.oppened {
+        background-color: yellow;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Minefield game</h1>
+    <p>This is an single implementation of minefield game.</p>
+
+    <div id="game"></div>
+
+    <script src="main.js"></script>
+    <script src="minefield-client.js"></script>
+  </body>
+</html>
