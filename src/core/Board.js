@@ -1,4 +1,4 @@
-import { CHECKER } from '../constants'
+import { CHECKER } from './constants'
 
 class Board {
   constructor (options) {

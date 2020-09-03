@@ -1,4 +1,4 @@
-import * as CONFIG from './constants'
+import * as CONFIG from './core/constants'
 import { Minefield } from './core'
 
 export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {

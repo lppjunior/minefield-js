@@ -1,4 +1,4 @@
-import { STATUS } from '../constants'
+import { STATUS } from './constants'
 
 class State {
   constructor (options, board) {

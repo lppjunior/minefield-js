@@ -3,7 +3,7 @@ import { Observer } from '@lppjunior/pattern-js'
 import Actions from './Actions'
 import Board from './Board'
 import State from './State'
-import { EVENT, STATUS, CHECKER } from '../constants'
+import { EVENT, STATUS, CHECKER } from './constants'
 
 class Minefield {
   constructor (options) {
