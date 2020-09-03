@@ -1,0 +1,38 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Master Push or Pull Request
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  NODE_VERSION: 12.x
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.node-version }}
+    - name: Install dependencies
+      run: npm install
+    - name: Run Lint
+      run: npm run lint
+    - name: Run Build
+      run: npm run build -- --prod
+    - name: List output files
+      run: ls dist
+    - name: Run Test
+      run: npm test -- --configuration=ci
+    - name: Run E2E
+      run: npm run e2e -- --configuration=ci
