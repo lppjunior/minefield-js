@@ -70,7 +70,6 @@ class MinefieldController {
 
   nextTurn(state) {
     this.state = state
-    console.log('NEXT_TURN Update!!!')
     this.mountBoard()
     this.log()
   }
