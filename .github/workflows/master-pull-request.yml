@@ -26,13 +26,11 @@ jobs:
         node-version: ${{ env.node-version }}
     - name: Install dependencies
       run: npm install
-    - name: Run Lint
-      run: npm run lint
+    - name: Run Standard
+      run: npx standard
+    - name: Run Jest
+      run: npm run jest
     - name: Run Build
-      run: npm run build -- --prod
+      run: npm run webpack
     - name: List output files
       run: ls dist
-    - name: Run Test
-      run: npm test -- --configuration=ci
-    - name: Run E2E
-      run: npm run e2e -- --configuration=ci
