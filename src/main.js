@@ -1,7 +1,7 @@
 import * as CONFIG from './constants'
 import { Minefield } from './core'
 
-export function getInstance (options = CONFIG.DEFAULTS.MEDIUM ) {
+export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {
   const game = new Minefield(options)
 
   const instance = {

@@ -46,13 +46,13 @@ export default {
     this.nextTurn()
   },
 
-  expand: function (parentRow, parentCol, ) {
+  expand: function (parentRow, parentCol) {
     for (let row = parentRow - 1; row <= parentRow + 1; row++) {
       for (let col = parentCol - 1; col <= parentCol + 1; col++) {
-        if (this.board[row] !== undefined
-            && this.board[row][col] !== undefined
-            && this.board[row][col] === CHECKER.NUMBER_0
-            && this.state.get('board')[row][col] === CHECKER.EMPTY) {
+        if (this.board[row] !== undefined &&
+            this.board[row][col] !== undefined &&
+            this.board[row][col] === CHECKER.NUMBER_0 &&
+            this.state.get('board')[row][col] === CHECKER.EMPTY) {
           this.updateValue(row, col, 0)
           this.expand(row, col)
         }

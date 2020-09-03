@@ -53,7 +53,7 @@ class Minefield {
     }
   }
 
-  updateStatus() {
+  updateStatus () {
     if (this.state.get('updated').length === 0) return
 
     this.state.set('status',
