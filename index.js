@@ -1,0 +1,3 @@
+'strict'
+
+export * from './src'
