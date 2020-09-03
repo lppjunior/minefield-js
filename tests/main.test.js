@@ -5,13 +5,13 @@ describe('Minefield', () => {
     test('should assert than Minefield has been defined', () => {
       expect(Minefield).toBeDefined()
     })
-    describe('Test existance of CHECKER', () => {
+    describe('Test existance of Minefield.CHECKER', () => {
       test('should assert than Minefield.CHECKER has been defined', () => {
         expect(Minefield.CHECKER).toBeDefined()
       })
     })
 
-    describe('Test existance of all DEFAULTS', () => {
+    describe('Test existance of all Minefield.DEFAULTS', () => {
       test('should assert than Minefield.DEFAULTS has been defined', () => {
         expect(Minefield.DEFAULTS).toBeDefined()
       })
@@ -26,6 +26,38 @@ describe('Minefield', () => {
 
       test('should assert than DEFAULTS.HARD has been defined', () => {
         expect(Minefield.DEFAULTS.HARD).toBeDefined()
+      })
+    })
+
+    describe('Test existance of all Minefield.EVENTS', () => {
+      test('should assert than Minefield.EVENTS.ALL has been defined', () => {
+        expect(Minefield.EVENTS.ALL).toBeDefined()
+      })
+
+      test('should assert than Minefield.EVENTS.START has been defined', () => {
+        expect(Minefield.EVENTS.START).toBeDefined()
+      })
+
+      test('should assert than Minefield.EVENTS.NEXT_TURN has been defined', () => {
+        expect(Minefield.EVENTS.NEXT_TURN).toBeDefined()
+      })
+
+      test('should assert than Minefield.EVENTS.FINISH has been defined', () => {
+        expect(Minefield.EVENTS.FINISH).toBeDefined()
+      })
+    })
+
+    describe('Test existance of all Minefield.STATUS', () => {
+      test('should assert than Minefield.STATUS.LOSS has been defined', () => {
+        expect(Minefield.STATUS.LOSS).toBeDefined()
+      })
+
+      test('should assert than Minefield.STATUS.PLAYING has been defined', () => {
+        expect(Minefield.STATUS.PLAYING).toBeDefined()
+      })
+
+      test('should assert than Minefield.STATUS.WIN has been defined', () => {
+        expect(Minefield.STATUS.WIN).toBeDefined()
       })
     })
 
@@ -58,38 +90,6 @@ describe('Minefield', () => {
 
       test('should assert than minefieldInstance.reset has been defined', () => {
         expect(minefieldInstance.reset).toBeDefined()
-      })
-
-      describe('Test existance of all minefieldInstance.STATUS', () => {
-        test('should assert than minefieldInstance.STATUS.LOSS has been defined', () => {
-          expect(minefieldInstance.STATUS.LOSS).toBeDefined()
-        })
-
-        test('should assert than minefieldInstance.STATUS.PLAYING has been defined', () => {
-          expect(minefieldInstance.STATUS.PLAYING).toBeDefined()
-        })
-
-        test('should assert than minefieldInstance.STATUS.WIN has been defined', () => {
-          expect(minefieldInstance.STATUS.WIN).toBeDefined()
-        })
-      })
-
-      describe('Test existance of all minefieldInstance EVENTS', () => {
-        test('should assert than minefieldInstance.ALL has been defined', () => {
-          expect(minefieldInstance.ALL).toBeDefined()
-        })
-
-        test('should assert than minefieldInstance.START has been defined', () => {
-          expect(minefieldInstance.START).toBeDefined()
-        })
-
-        test('should assert than minefieldInstance.NEXT_TURN has been defined', () => {
-          expect(minefieldInstance.NEXT_TURN).toBeDefined()
-        })
-
-        test('should assert than minefieldInstance.FINISH has been defined', () => {
-          expect(minefieldInstance.FINISH).toBeDefined()
-        })
       })
     })
   })

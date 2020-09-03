@@ -1,13 +1,14 @@
 class MinefieldController {
   constructor (game) {
-    game
-      .addListener(game.START, (data) => this.start(data))
-      .addListener(game.NEXT_TURN, (data) => this.nextTurn(data))
-      .addListener(game.FINISH, (data) => this.finish(data))
-      .addListener(game.ALL, (data = { event, state }) => { console.log('EVENT.ALL > ', data) })
-      .start()
+    this.EVENTS = Minefield.EVENTS
+    this.STATUS = Minefield.STATUS
 
-    this.STATUS = game.STATUS
+    game
+      .addListener(this.EVENTS.START, (data) => this.start(data))
+      .addListener(this.EVENTS.NEXT_TURN, (data) => this.nextTurn(data))
+      .addListener(this.EVENTS.FINISH, (data) => this.finish(data))
+      .addListener(this.EVENTS.ALL, (data = { event, state }) => { console.log('EVENT.ALL > ', data) })
+      .start()
 
     this.click = (event) => {
       event = event || window.event

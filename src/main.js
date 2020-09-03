@@ -14,17 +14,15 @@ export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {
     open: (x, y) => game.open(x, y),
     flag: (x, y) => game.flag(x, y),
     getState: () => game.getState(),
-    reset: () => game.start(),
-
-    STATUS: CONFIG.STATUS,
-    ...CONFIG.EVENTS
+    reset: () => game.start()
   }
 
   return instance
 }
 
-export const DEFAULTS = CONFIG.DEFAULTS
 export const CHECKER = CONFIG.CHECKER
+export const DEFAULTS = CONFIG.DEFAULTS
+export const EVENTS = CONFIG.EVENTS
 export const STATUS = CONFIG.STATUS
 
 export default {
