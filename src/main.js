@@ -1,4 +1,4 @@
-import * as CONFIG from './config'
+import * as CONFIG from './constants'
 import { Minefield } from './core'
 
 export function getInstance (options = CONFIG.DEFAULTS.MEDIUM ) {
@@ -14,6 +14,8 @@ export function getInstance (options = CONFIG.DEFAULTS.MEDIUM ) {
     open: (x, y) => game.open(x, y),
     flag: (x, y) => game.flag(x, y),
     getState: () => game.state,
+    reset: () => game.start(),
+
     STATUS: CONFIG.STATUS,
     ...CONFIG.EVENT
   }

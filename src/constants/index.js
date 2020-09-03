@@ -12,7 +12,7 @@ import {
 
 import {
   CHECKER
-} from './values'
+} from './checker'
 
 export {
   DEFAULTS,

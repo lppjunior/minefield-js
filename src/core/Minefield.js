@@ -4,12 +4,11 @@ import Actions from './Actions'
 import Board from './Board'
 import State from './State'
 import Validator from './Validator'
-import { DEFAULT, EVENT, STATUS } from '../config'
+import { EVENT, STATUS } from '../constants'
 
 class Minefield {
   constructor (options = {}) {
     this.options = {
-      ...DEFAULT,
       ...options
     }
 
@@ -33,6 +32,7 @@ class Minefield {
   }
 
   start () {
+    console.log(123)
     this.board = Board.make(this.options)
     this.state = new State(this.options, this.board)
 

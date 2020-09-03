@@ -16,7 +16,7 @@ export const DEFAULTS = {
 
   MEDIUM: {
     ...GLOBALS,
-    ...makeLevel(2)
+    ...makeLevel(15)
   },
 
   HARD: {

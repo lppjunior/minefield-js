@@ -1,4 +1,4 @@
-import { CHECKER, STATUS } from '../config'
+import { CHECKER, STATUS } from '../constants'
 
 export default {
   validateLastTurn: function () {

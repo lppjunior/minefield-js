@@ -1,4 +1,4 @@
-import { CHECKER } from '../config'
+import { CHECKER } from '../constants'
 
 export default {
   updateValue: function (row, col, value) {
