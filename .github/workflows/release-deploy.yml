@@ -35,7 +35,7 @@ jobs:
     - name: Deploy to ftp.lppjunior.com/minefield.lppjunior.com
       uses: SamKirkland/FTP-Deploy-Action@3.0.0
       with:
-        local-dir: dist/minefield.lppjunior.com
+        local-dir: dist
         ftp-server: ftp://ftp.lppjunior.com/minefield.lppjunior.com
         ftp-username: ${{ secrets.REMOTE_USER }}
         ftp-password: ${{ secrets.REMOTE_PASSWORD }}
