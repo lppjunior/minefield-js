@@ -1,0 +1,43 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Release deploy
+
+on:
+  release:
+    types: [ created ]
+
+env:
+  NODE_VERSION: 12.x
+
+jobs:
+  build:
+    name: Build, Test and Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.node-version }}
+    - name: Install dependencies
+      run: npm install
+    - name: Run Lint
+      run: npm run lint
+    - name: Run Build
+      run: npm run build -- --prod
+    - name: List output files
+      run: ls
+    - name: Run Test
+      run: npm test -- --configuration=ci
+    - name: Run E2E
+      run: npm run e2e -- --configuration=ci
+    - name: Deploy to ftp.lppjunior.com/minefield.lppjunior.com
+      uses: SamKirkland/FTP-Deploy-Action@3.0.0
+      with:
+        local-dir: dist/minefield.lppjunior.com
+        ftp-server: ftp://ftp.lppjunior.com/minefield.lppjunior.com
+        ftp-username: ${{ secrets.REMOTE_USER }}
+        ftp-password: ${{ secrets.REMOTE_PASSWORD }}
