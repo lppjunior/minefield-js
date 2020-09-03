@@ -1,7 +1,7 @@
 import { CHECKER } from '../constants'
 
 class Board {
-  constructor (options = {}) {
+  constructor (options) {
     this.options = options
   }
 

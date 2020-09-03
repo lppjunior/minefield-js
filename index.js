@@ -1,1 +1,3 @@
+'strict'
+
 export * from './src'
