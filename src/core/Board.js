@@ -1,4 +1,4 @@
-import { CHECKER } from './constants'
+import { CHECKERS } from './constants'
 
 class Board {
   constructor (options) {
@@ -30,7 +30,7 @@ class Board {
       const _mine = `${mine.join(',')}|`
 
       if (mines.indexOf(_mine) === -1) {
-        this.data[mine[0]][mine[1]] = CHECKER.MINE
+        this.data[mine[0]][mine[1]] = CHECKERS.MINE
         this.fillAround(mine)
 
         mines += _mine

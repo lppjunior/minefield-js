@@ -3,7 +3,7 @@ import { Observer } from '@lppjunior/pattern-js'
 import Actions from './Actions'
 import Board from './Board'
 import State from './State'
-import { EVENT, STATUS, CHECKER } from './constants'
+import { EVENTS, STATUS, CHECKERS } from './constants'
 
 class Minefield {
   constructor (options) {
@@ -20,13 +20,14 @@ class Minefield {
 
   emit (event) {
     this.observer.emit(event, this.getState())
+    this.observer.emit(EVENTS.ALL, { event, state: this.getState() })
   }
 
   start () {
     this.board = Board.make(this.options)
     this.state = new State(this.options, this.board)
 
-    this.emit(EVENT.START)
+    this.emit(EVENTS.START)
 
     return this
   }
@@ -48,12 +49,12 @@ class Minefield {
 
     switch (this.state.get('status')) {
       case STATUS.PLAYING:
-        this.emit(EVENT.NEXT_TURN)
+        this.emit(EVENTS.NEXT_TURN)
         break
       case STATUS.LOSS:
       case STATUS.WIN:
         this.openAll()
-        this.emit(EVENT.FINISH)
+        this.emit(EVENTS.FINISH)
         break
     }
   }
@@ -62,7 +63,7 @@ class Minefield {
     if (this.state.get('updated').length === 0) return
 
     this.state.set('status',
-      this.state.get('updated')[0].value === CHECKER.MINE ? STATUS.LOSS
+      this.state.get('updated')[0].value === CHECKERS.MINE ? STATUS.LOSS
         : this.state.get('checked') === this.state.get('total') ? STATUS.WIN
           : STATUS.PLAYING
     )
