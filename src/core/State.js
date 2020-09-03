@@ -30,7 +30,7 @@ class State {
   }
 
   set (key, value) {
-    return this.state[key] = value
+    this.state[key] = value
   }
 
   getValue (row, col) {
@@ -38,15 +38,19 @@ class State {
   }
 
   setValue (row, col, value) {
-    return this.state.board[row][col] = value
+    this.state.board[row][col] = value
   }
 
   isWin () {
-    return this.state.get('status') === STATUS.WIN
+    return this.get('status') === STATUS.WIN
   }
 
   isLoss () {
-    return this.state.get('status') === STATUS.LOSS
+    return this.get('status') === STATUS.LOSS
+  }
+
+  isFinish () {
+    return this.isWin() || this.isLoss()
   }
 }
 

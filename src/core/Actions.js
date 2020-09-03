@@ -20,6 +20,10 @@ export default {
   },
 
   open: function (row, col) {
+    if (this.state.isFinish()) {
+      return
+    }
+
     this.state.set('updated', [])
 
     if (this.state.getValue(row, col) === CHECKER.EMPTY) {
@@ -36,6 +40,10 @@ export default {
   },
 
   flag: function (row, col) {
+    if (this.state.isFinish()) {
+      return
+    }
+
     this.state.set('updated', [])
 
     const lastValue = this.state.getValue(row, col)
