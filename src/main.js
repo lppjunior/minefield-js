@@ -13,7 +13,7 @@ export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {
     start: () => game.start(),
     open: (x, y) => game.open(x, y),
     flag: (x, y) => game.flag(x, y),
-    getState: () => game.state,
+    getState: () => game.getState(),
     reset: () => game.start(),
 
     STATUS: CONFIG.STATUS,
@@ -24,8 +24,9 @@ export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {
 }
 
 export const DEFAULTS = CONFIG.DEFAULTS
+export const CHECKER = CONFIG.CHECKER
+export const STATUS = CONFIG.STATUS
 
 export default {
-  DEFAULTS: CONFIG.DEFAULTS,
   getInstance
 }
