@@ -75,6 +75,10 @@ describe('Minefield', () => {
       })
 
       describe('Test existance of all minefieldInstance EVENTS', () => {
+        test('should assert than minefieldInstance.ALL has been defined', () => {
+          expect(minefieldInstance.ALL).toBeDefined()
+        })
+
         test('should assert than minefieldInstance.START has been defined', () => {
           expect(minefieldInstance.START).toBeDefined()
         })

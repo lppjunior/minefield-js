@@ -17,7 +17,7 @@ export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {
     reset: () => game.start(),
 
     STATUS: CONFIG.STATUS,
-    ...CONFIG.EVENT
+    ...CONFIG.EVENTS
   }
 
   return instance

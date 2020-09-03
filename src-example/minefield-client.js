@@ -4,6 +4,7 @@ class MinefieldController {
       .addListener(game.START, (data) => this.start(data))
       .addListener(game.NEXT_TURN, (data) => this.nextTurn(data))
       .addListener(game.FINISH, (data) => this.finish(data))
+      .addListener(game.ALL, (data = { event, state }) => { console.log('EVENT.ALL > ', data) })
       .start()
 
     this.STATUS = game.STATUS

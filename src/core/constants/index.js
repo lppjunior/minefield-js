@@ -3,8 +3,8 @@ import {
 } from './default'
 
 import {
-  EVENT
-} from './event'
+  EVENTS
+} from './events'
 
 import {
   STATUS
@@ -16,7 +16,7 @@ import {
 
 export {
   DEFAULTS,
-  EVENT,
+  EVENTS,
   STATUS,
   CHECKER
 }
