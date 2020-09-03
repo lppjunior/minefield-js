@@ -6,7 +6,7 @@ import State from './State'
 import { EVENT, STATUS, CHECKER } from '../constants'
 
 class Minefield {
-  constructor (options = {}) {
+  constructor (options) {
     this.options = {
       ...options
     }
@@ -19,6 +19,19 @@ class Minefield {
   }
 
   emit (event) {
+    this.observer.emit(event, this.getState())
+  }
+
+  start () {
+    this.board = Board.make(this.options)
+    this.state = new State(this.options, this.board)
+
+    this.emit(EVENT.START)
+
+    return this
+  }
+
+  getState () {
     const data = this.state.get()
 
     if (this.options.debug) {
@@ -27,15 +40,7 @@ class Minefield {
       }
     }
 
-    this.observer.emit(event, data)
-  }
-
-  start () {
-    console.log(123)
-    this.board = Board.make(this.options)
-    this.state = new State(this.options, this.board)
-
-    this.emit(EVENT.START)
+    return data
   }
 
   nextTurn () {
@@ -64,6 +69,6 @@ class Minefield {
   }
 }
 
-Object.keys(Actions).forEach(action => Minefield.prototype[action] = Actions[action])
+Object.keys(Actions).forEach(action => { Minefield.prototype[action] = Actions[action] })
 
 export default Minefield
