@@ -59,10 +59,14 @@ export default {
       for (let col = parentCol - 1; col <= parentCol + 1; col++) {
         if (this.board[row] !== undefined &&
             this.board[row][col] !== undefined &&
-            this.board[row][col] === CHECKER.NUMBER_0 &&
+            this.board[row][col] >= CHECKER.NUMBER_0 &&
+            this.board[row][col] <= CHECKER.NUMBER_8 &&
             this.state.get('board')[row][col] === CHECKER.EMPTY) {
-          this.updateValue(row, col, 0)
-          this.expand(row, col)
+          this.updateValue(row, col, this.board[row][col])
+
+          if (this.board[row][col] === CHECKER.NUMBER_0) {
+            this.expand(row, col)
+          }
         }
       }
     }
