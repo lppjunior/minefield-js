@@ -20,7 +20,7 @@ class MinefieldController {
   }
 
   start(state) {
-    this.board = state.debug.board
+    // this.board = state.debug.board
     this.state = state
     this.log()
 
@@ -30,23 +30,23 @@ class MinefieldController {
   mountBoard() {
     const classes = {
       '': 'closed',
-      'X': 'oppened',
-      'F': 'flag',
-      '-1': 'mine',
-      '0': 'number number-0',
-      '1': 'number number-1',
-      '2': 'number number-2',
-      '3': 'number number-3',
-      '4': 'number number-4',
-      '5': 'number number-5',
-      '6': 'number number-6',
-      '7': 'number number-7',
-      '8': 'number number-8'
+      'F': 'openned flag',
+      '-1': 'openned mine',
+      '0': 'openned number number-0',
+      '1': 'openned number number-1',
+      '2': 'openned number number-2',
+      '3': 'openned number number-3',
+      '4': 'openned number number-4',
+      '5': 'openned number number-5',
+      '6': 'openned number number-6',
+      '7': 'openned number number-7',
+      '8': 'openned number number-8'
     }
 
     const lines = this.state.board.map((line, i) => {
       return `<tr>${
-        line.map((value, j) => `<td data-x='${i}' data-y='${j}' class='${classes[value]}'>${this.board[i][j]}</td>`).join('')
+        // line.map((value, j) => `<td data-x='${i}' data-y='${j}' class='${classes[value]}'>${value === '' ? this.board[i][j] : ''}</td>`).join('')
+        line.map((value, j) => `<td data-x='${i}' data-y='${j}' class='${classes[value]}'></td>`).join('')
       }</tr>`
     }).join('')
 

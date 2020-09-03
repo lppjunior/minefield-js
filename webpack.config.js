@@ -22,6 +22,7 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
+        { from: 'src-example/styles.css', to: '' },
         { from: 'src-example/main.js', to: '' },
         { from: 'src-example/minefield-client.js', to: '' }
       ]
