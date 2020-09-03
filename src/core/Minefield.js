@@ -3,8 +3,7 @@ import { Observer } from '@lppjunior/pattern-js'
 import Actions from './Actions'
 import Board from './Board'
 import State from './State'
-import Validator from './Validator'
-import { EVENT, STATUS } from '../constants'
+import { EVENT, STATUS, CHECKER } from '../constants'
 
 class Minefield {
   constructor (options = {}) {
@@ -40,7 +39,7 @@ class Minefield {
   }
 
   nextTurn () {
-    this.validateLastTurn()
+    this.updateStatus()
 
     switch (this.state.get('status')) {
       case STATUS.PLAYING:
@@ -53,9 +52,18 @@ class Minefield {
         break
     }
   }
+
+  updateStatus() {
+    if (this.state.get('updated').length === 0) return
+
+    this.state.set('status',
+      this.state.get('updated')[0].value === CHECKER.MINE ? STATUS.LOSS
+        : this.state.get('checked') === this.state.get('total') ? STATUS.WIN
+          : STATUS.PLAYING
+    )
+  }
 }
 
 Object.keys(Actions).forEach(action => Minefield.prototype[action] = Actions[action])
-Object.keys(Validator).forEach(action => Minefield.prototype[action] = Validator[action])
 
 export default Minefield

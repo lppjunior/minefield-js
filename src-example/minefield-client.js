@@ -78,13 +78,7 @@ class MinefieldController {
   finish(state) {
     this.state = state
 
-    if (state.status === this.STATUS.LOSS) {
-      console.log('===> LOSS')
-    } else if (state.status === this.STATUS.WIN) {
-      console.log('===> GAIN')
-    }
-
-    console.error('Finish', state)
+    console.error('Finish', state.status, state)
     this.mountBoard()
     this.log()
   }
