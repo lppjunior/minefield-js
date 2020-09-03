@@ -23,7 +23,7 @@ describe('Minefield gameplay', () => {
 
     instance.getState().debug.board.forEach((cols, row) => {
       cols.forEach((value, col) => {
-        if (value !== Minefield.CHECKER.MINE) {
+        if (value !== Minefield.CHECKERS.MINE) {
           instance.flag(row, col)
           instance.open(row, col)
           instance.flag(row, col)
@@ -47,7 +47,7 @@ describe('Minefield gameplay', () => {
 
     instance.getState().debug.board.forEach((cols, row) => {
       cols.forEach((value, col) => {
-        if (value === Minefield.CHECKER.MINE) {
+        if (value === Minefield.CHECKERS.MINE) {
           instance.open(row, col)
         }
       })

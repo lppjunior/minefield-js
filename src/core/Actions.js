@@ -1,11 +1,11 @@
-import { CHECKER } from './constants'
+import { CHECKERS } from './constants'
 
 export default {
   updateValue: function (row, col, value) {
     this.state.setValue(row, col, value)
     this.state.get('updated').push({ row, col, value })
 
-    if ([CHECKER.EMPTY, CHECKER.FLAG, CHECKER.MINE].indexOf(value) === -1) {
+    if ([CHECKERS.EMPTY, CHECKERS.FLAG, CHECKERS.MINE].indexOf(value) === -1) {
       this.state.set('checked', this.state.get('checked') + 1)
     }
   },
@@ -26,7 +26,7 @@ export default {
 
     this.state.set('updated', [])
 
-    if (this.state.getValue(row, col) === CHECKER.EMPTY) {
+    if (this.state.getValue(row, col) === CHECKERS.EMPTY) {
       const value = this.board[row][col]
 
       this.updateValue(row, col, value)
@@ -47,8 +47,8 @@ export default {
     this.state.set('updated', [])
 
     const lastValue = this.state.getValue(row, col)
-    if ([CHECKER.FLAG, CHECKER.EMPTY].indexOf(lastValue) > -1) {
-      this.updateValue(row, col, lastValue === CHECKER.FLAG ? CHECKER.EMPTY : CHECKER.FLAG)
+    if ([CHECKERS.FLAG, CHECKERS.EMPTY].indexOf(lastValue) > -1) {
+      this.updateValue(row, col, lastValue === CHECKERS.FLAG ? CHECKERS.EMPTY : CHECKERS.FLAG)
     }
 
     this.nextTurn()
@@ -59,12 +59,12 @@ export default {
       for (let col = parentCol - 1; col <= parentCol + 1; col++) {
         if (this.board[row] !== undefined &&
             this.board[row][col] !== undefined &&
-            this.board[row][col] >= CHECKER.NUMBER_0 &&
-            this.board[row][col] <= CHECKER.NUMBER_8 &&
-            this.state.get('board')[row][col] === CHECKER.EMPTY) {
+            this.board[row][col] >= CHECKERS.NUMBER_0 &&
+            this.board[row][col] <= CHECKERS.NUMBER_8 &&
+            this.state.get('board')[row][col] === CHECKERS.EMPTY) {
           this.updateValue(row, col, this.board[row][col])
 
-          if (this.board[row][col] === CHECKER.NUMBER_0) {
+          if (this.board[row][col] === CHECKERS.NUMBER_0) {
             this.expand(row, col)
           }
         }
