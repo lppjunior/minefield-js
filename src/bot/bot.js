@@ -6,26 +6,35 @@ class Bot {
   }) {
     this.game = options.game
     this.delay = options.delay
+
+    this.game.addListener(Minefield.EVENTS.ALL, (data) => this.autoRun(data), this.delay)
+  }
+
+  autoRun (data) {
+    if (this.delay > Bot.MODE.MANUAL) {
+      setTimeout(() => this.run(data), this.delay)
+    }
   }
 
   run (data) {
     switch (data.event) {
       case Minefield.EVENTS.START:
-        this.random(data)
-        break
-
       case Minefield.EVENTS.NEXT_TURN:
-        // this.game.open(2, 2)
-        console.log('-----> NEXT_TURN!')
+        this.calculate(data)
         break
 
       case Minefield.EVENTS.FINISH:
-        console.log(data.state.status === Minefield.STATUS.LOSS ? 'I\'m LOSS! =(' : 'I\'m WIN! \ o /')
+        console.log(`Heeey, i'm the Minefield BOT and i'm ${data.state.status === Minefield.STATUS.LOSS } ? 'LOSS! =(' : 'WIN! \ o /' game`  )
         break
     }
   }
 
-  random (data) {
+  calculate(data) {
+    console.log('====> AGORA FUDEU!')
+    this.openRandom(data)
+  }
+
+  openRandom (data) {
     const rand = (size) => Math.floor(Math.random() * size)
 
     this.game.open(
