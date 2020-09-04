@@ -1,5 +1,9 @@
 class MinefieldController {
-  constructor (game) {
+  constructor ({
+    game,
+    debug = false
+  }) {
+    this.debug = debug
     this.EVENTS = Minefield.EVENTS
     this.STATUS = Minefield.STATUS
 
@@ -84,7 +88,9 @@ class MinefieldController {
   }
 
   log () {
-    console.log(this.state)
-    console.log(JSON.stringify(this.state))
+    if (this.debug) {
+      console.log(this.state)
+      console.log(JSON.stringify(this.state))
+    }
   }
 }
