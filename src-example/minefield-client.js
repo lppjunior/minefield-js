@@ -8,7 +8,6 @@ class MinefieldController {
       .addListener(this.EVENTS.NEXT_TURN, (data) => this.nextTurn(data))
       .addListener(this.EVENTS.FINISH, (data) => this.finish(data))
       .addListener(this.EVENTS.ALL, (data = { event, state }) => { console.log('EVENT.ALL > ', data) })
-      .start()
 
     this.click = (event) => {
       event = event || window.event
