@@ -19,7 +19,7 @@ export default {
     this.state.set('board', board)
   },
 
-  open: function (row, col) {
+  open: function (row, col, batchMode = false) {
     if (this.state.isFinish()) {
       return
     }
@@ -36,10 +36,10 @@ export default {
       }
     }
 
-    this.nextTurn()
+    if (!batchMode) this.nextTurn()
   },
 
-  flag: function (row, col) {
+  flag: function (row, col, batchMode = false) {
     if (this.state.isFinish()) {
       return
     }
@@ -50,6 +50,14 @@ export default {
     if ([CHECKERS.FLAG, CHECKERS.EMPTY].indexOf(lastValue) > -1) {
       this.updateValue(row, col, lastValue === CHECKERS.FLAG ? CHECKERS.EMPTY : CHECKERS.FLAG)
     }
+
+    if (!batchMode) this.nextTurn()
+  },
+
+  batch: function (payload) {
+    payload.forEach(checker => {
+      this[(checker.type === CHECKERS.FLAG) ? 'flag' : 'open'](checker.row, checker.col, true)
+    })
 
     this.nextTurn()
   },

@@ -6,8 +6,15 @@ class Board {
   }
 
   make () {
-    this.makeBoard()
-    this.makeMines()
+    if (this.options.mock) {
+      this.data = JSON.parse(this.options.mock)
+      this.options.rows = this.data.length
+      this.options.cols = this.data[0].length
+      this.options.mines = (this.options.mock.match(/-1/g) || []).length
+    } else {
+      this.makeBoard()
+      this.makeMines()
+    }
 
     return this.data
   }

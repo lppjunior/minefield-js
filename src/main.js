@@ -13,6 +13,7 @@ export function getInstance (options = CONFIG.DEFAULTS.MEDIUM) {
     start: () => game.start(),
     open: (x, y) => game.open(x, y),
     flag: (x, y) => game.flag(x, y),
+    batch: (payload) => game.batch(payload),
     getState: () => game.getState(),
     reset: () => game.start()
   }
