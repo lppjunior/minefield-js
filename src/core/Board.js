@@ -42,9 +42,9 @@ class Board {
   fillAround (mine) {
     for (let row = mine[0] - 1; row <= mine[0] + 1; row++) {
       for (let col = mine[1] - 1; col <= mine[1] + 1; col++) {
-        if (this.data[row] !== undefined
-          && this.data[row][col] !== undefined
-          && this.data[row][col] > CHECKERS.MINE) {
+        if (this.data[row] !== undefined &&
+          this.data[row][col] !== undefined &&
+          this.data[row][col] > CHECKERS.MINE) {
           this.data[row][col]++
         }
       }
