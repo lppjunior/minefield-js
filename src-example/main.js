@@ -1,15 +1,12 @@
 'strict'
 
 function run () {
-  const minefield = Minefield.getInstance(Minefield.DEFAULTS.MEDIUM)
-  new MinefieldController(minefield)
-  const bot = new Bot({ delay: 1000, game: minefield })
+  const game = Minefield.getInstance(Minefield.DEFAULTS.MEDIUM)
 
-  //Add bot listener
-  minefield.addListener(Minefield.EVENTS.ALL, (data) => bot.run(data))
+  new Bot({ game, delay: 2000 })
+  new MinefieldController({ game })
 
-  //Start Game
-  minefield.start()
+  game.start()
 }
 
 document.addEventListener('DOMContentLoaded', run, false)
