@@ -27,7 +27,7 @@ class Bot {
       console.log(`Heeey, i'm the Minefield BOT and i'm \
         ${this.state.status === Minefield.STATUS.LOSS
           ? 'LOSS! =('
-          : 'WIN! \ o /'
+          : 'WIN! \\ o /'
         } game`
       )
     }
@@ -55,7 +55,7 @@ class Bot {
     ).filter(values => values !== null)
   }
 
-  calcAround() {
+  calcAround () {
     this.available.forEach(checker => {
       checker.around = 0
       checker.aroundList = []
@@ -63,33 +63,33 @@ class Bot {
 
       const { rows, cols } = this.state
 
-      if (checker.row === 0 && (checker.col === 0 || checker.col === cols - 1)
-      || checker.row === rows - 1 && (checker.col === 0 || checker.col === cols - 1)) {
+      if ((checker.row === 0 && (checker.col === 0 || checker.col === cols - 1)) ||
+      (checker.row === rows - 1 && (checker.col === 0 || checker.col === cols - 1))) {
         checker.around += 5
-      } else if (checker.row === 0
-      || checker.row === rows - 1
-      || checker.col === 0
-      || checker.col === cols -1) {
+      } else if (checker.row === 0 ||
+      checker.row === rows - 1 ||
+      checker.col === 0 ||
+      checker.col === cols - 1) {
         checker.around += 3
       }
 
       for (let row = checker.row - 1; row <= checker.row + 1; row++) {
         for (let col = checker.col - 1; col <= checker.col + 1; col++) {
-          if (this.state.board[row] !== undefined
-            && this.state.board[row][col] !== undefined) {
-              if (this.state.board[row][col] !== Minefield.CHECKERS.EMPTY) {
-                checker.around++
-                checker.aroundList.push(this.state.board[row][col])
-              } else {
-                checker.closedList.push(this.state.board[row][col])
-              }
+          if (this.state.board[row] !== undefined &&
+            this.state.board[row][col] !== undefined) {
+            if (this.state.board[row][col] !== Minefield.CHECKERS.EMPTY) {
+              checker.around++
+              checker.aroundList.push(this.state.board[row][col])
+            } else {
+              checker.closedList.push(this.state.board[row][col])
+            }
           }
         }
       }
-    });
+    })
   }
 
-  calcNextList() {
+  calcNextList () {
     this.nextList = []
     this.available.forEach((checker) => {
       if (checker.around === 8) {
@@ -99,7 +99,7 @@ class Bot {
     })
   }
 
-  open(checker) {
+  open (checker) {
     console.log('OPEN: ', checker)
 
     if (checker.flag) {
@@ -109,7 +109,7 @@ class Bot {
     }
   }
 
-  openNext() {
+  openNext () {
     if (this.nextList.length) {
       this.open(this.nextList.pop())
     } else {
