@@ -56,7 +56,7 @@ export default {
 
   batch: function (payload) {
     payload.forEach(checker => {
-      this[checker.type === Minefield.CHECKERS.FLAG ? 'flag' : 'open'](checker.row, checker.col, true)
+      this[(checker.type === CHECKERS.FLAG) ? 'flag' : 'open'](checker.row, checker.col, true)
     })
 
     this.nextTurn()

@@ -6,8 +6,15 @@ class Board {
   }
 
   make () {
-    this.makeBoard()
-    this.makeMines()
+    if (this.options.mock) {
+      this.data = JSON.parse(this.options.mock)
+      this.options.rows = this.data.length
+      this.options.cols = this.data[0].length
+      this.options.mines = (this.options.mock.match(/-1/g) || []).length
+    } else {
+      this.makeBoard()
+      this.makeMines()
+    }
 
     return this.data
   }
@@ -42,7 +49,9 @@ class Board {
   fillAround (mine) {
     for (let row = mine[0] - 1; row <= mine[0] + 1; row++) {
       for (let col = mine[1] - 1; col <= mine[1] + 1; col++) {
-        if (this.data[row] !== undefined && this.data[row][col] !== undefined && this.data[row][col] > -1) {
+        if (this.data[row] !== undefined &&
+          this.data[row][col] !== undefined &&
+          this.data[row][col] > CHECKERS.MINE) {
           this.data[row][col]++
         }
       }

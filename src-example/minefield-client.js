@@ -1,5 +1,9 @@
 class MinefieldController {
-  constructor (game) {
+  constructor ({
+    game,
+    debug = false
+  }) {
+    this.debug = debug
     this.EVENTS = Minefield.EVENTS
     this.STATUS = Minefield.STATUS
 
@@ -7,8 +11,6 @@ class MinefieldController {
       .addListener(this.EVENTS.START, (data) => this.start(data))
       .addListener(this.EVENTS.NEXT_TURN, (data) => this.nextTurn(data))
       .addListener(this.EVENTS.FINISH, (data) => this.finish(data))
-      .addListener(this.EVENTS.ALL, (data = { event, state }) => { console.log('EVENT.ALL > ', data) })
-      .start()
 
     this.click = (event) => {
       event = event || window.event
@@ -47,7 +49,6 @@ class MinefieldController {
 
     const lines = this.state.board.map((line, i) => {
       return `<tr>${
-        // line.map((value, j) => `<td data-x='${i}' data-y='${j}' class='${classes[value]}'>${value === '' ? this.board[i][j] : ''}</td>`).join('')
         line.map((value, j) => `<td data-x='${i}' data-y='${j}' class='${classes[value]}'></td>`).join('')
       }</tr>`
     }).join('')
@@ -85,7 +86,9 @@ class MinefieldController {
   }
 
   log () {
-    console.log(this.state)
-    console.log(JSON.stringify(this.state))
+    if (this.debug) {
+      console.log(this.state)
+      console.log(JSON.stringify(this.state))
+    }
   }
 }
