@@ -1,3 +1,5 @@
+import { Observer } from '@lppjunior/pattern-js'
+
 import * as Minefield from '../main'
 import * as Modules from './modules'
 import * as Constants from './constants'
@@ -11,27 +13,39 @@ class Bot {
     }
 
     this.nextList = []
+    this.stoped = false
+
+    this.observer = new Observer()
+  }
+
+  onFinish (fn) {
+    this.observer.on('onFinish', fn)
   }
 
   autoRun () {
-    if (this.speed > Constants.SPEED.NONE) {
+    if (this.speed > Constants.SPEED.NONE && !this.stoped) {
       setTimeout(() => this.run(), this.speed)
     }
   }
 
-  run () {
-    this.setState()
-    this.play()
-    this.result()
+  play () {
+    this.stoped = false
+    this.run()
 
     return this
   }
 
-  play () {
+  stop () {
+    this.stoped = true
+  }
+
+  run () {
+    this.setState()
     if (this.state.status === Minefield.STATUS.PLAYING) {
       this.calculate()
       this.open()
     }
+    this.result()
   }
 
   calculate () {
@@ -45,12 +59,13 @@ class Bot {
 
   result () {
     if (this.state.status !== Minefield.STATUS.PLAYING) {
-      const result = this.state.status === Minefield.STATUS.LOSS ? 'LOSS! =(' : 'WIN! \\o/'
-      console.log(`Heeey, i'm the Minefield BOT and i'm ${result} game`)
+      this.observer.emit('onFinish', this.state.status)
     }
   }
 
   open () {
+    // console.log(this.process, this.process === Constants.PROCESS.BATCH)
+
     const checkers = (this.process === Constants.PROCESS.BATCH)
       ? [].concat(this.nextList)
       : [this.nextList.pop()]

@@ -40,10 +40,7 @@ export default {
         this.boardMap[Minefield.CHECKERS[key]].forEach(checker => {
           if (checker.value === checker.around[Minefield.CHECKERS.FLAG].length) {
             const itens = checker.around[Minefield.CHECKERS.EMPTY]
-            itens.forEach(item => {
-              item.origin = 'ADD_OPEN'
-            })
-
+            itens.forEach(item => { item.origin = 'ADD_OPEN' })
             this.nextList = [...this.nextList, ...itens]
           }
         })
