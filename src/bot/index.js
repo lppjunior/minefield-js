@@ -1,3 +1,5 @@
-import Bot from './bot'
+import * as Bot from './main'
 
-export { Bot }
+export {
+  Bot
+}

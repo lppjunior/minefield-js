@@ -2,13 +2,13 @@ import * as Minefield from '../../main'
 
 export default {
   calculateNextList: function () {
-    this.addFlag()
-    this.addOpen()
-    this.addRand()
+    this.addAvailableFlag()
+    this.addAvailableOpen()
+    this.addRandOpen()
     this.removeDuplication()
   },
 
-  addFlag: function () {
+  addAvailableFlag: function () {
     Object
       .keys(Minefield.CHECKERS)
       .filter((key) => ![
@@ -29,7 +29,7 @@ export default {
       })
   },
 
-  addOpen: function () {
+  addAvailableOpen: function () {
     Object
       .keys(Minefield.CHECKERS)
       .filter((key) => ![
@@ -50,7 +50,7 @@ export default {
       })
   },
 
-  addRand: function () {
+  addRandOpen: function () {
     if (this.state.checked === 0 || this.nextList.length === 0) {
       const rand = (size) => Math.floor(Math.random() * size)
       const emptyCheckers = this.boardMap[Minefield.CHECKERS.EMPTY]
