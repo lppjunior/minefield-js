@@ -138,4 +138,17 @@ describe('Minefield', () => {
       expect(instance.reset).toHaveBeenCalled()
     })
   })
+
+  describe('Test Minefield.getInstance() with mock board', () => {
+    const instance = Minefield.getInstance({ mock: '[[1, 1], [-1, 1]]' })
+    instance.start()
+
+    test('should assert method instance has 2 rows', () => {
+      expect(instance.getState().rows).toEqual(2)
+    })
+
+    test('should assert method instance has 2 columns', () => {
+      expect(instance.getState().cols).toEqual(2)
+    })
+  })
 })
