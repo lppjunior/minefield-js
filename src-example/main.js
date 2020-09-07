@@ -2,9 +2,16 @@
 
 
 function run () {
-  const game = Minefield.getInstance(Minefield.DEFAULTS.MEDIUM)
+  window.game = Minefield.getInstance({
+    ...Minefield.DEFAULTS.HARD
+  })
 
-  new Bot({ game, mode: Bot.MODE.FAST })
+  window.bot = Bot.getInstance({
+    game,
+    process: Bot.PROCESS.UNIT,
+    speed: 200
+  })
+
   new MinefieldController({ game })
 
   game.start()
