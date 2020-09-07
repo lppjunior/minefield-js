@@ -21,6 +21,7 @@ export const DEFAULTS = {
 
   HARD: {
     ...GLOBALS,
-    ...makeLevel(30)
+    ...makeLevel(30),
+    mines: 100
   }
 }
