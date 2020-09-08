@@ -1,37 +1,53 @@
+import { Observer } from '@lppjunior/pattern-js'
+
 import * as Minefield from '../main'
 import * as Modules from './modules'
 import * as Constants from './constants'
 
 class Bot {
   constructor (options) {
-    Object.keys(options).forEach(key => { this[key] = options[key] })
+    Object.keys(options).forEach(key => {
+      this[key] = options[key]
+    })
 
     if (this.speed !== Constants.SPEED.NONE) {
       this.game.addListener(Minefield.EVENTS.ALL, () => this.autoRun(), this.speed)
     }
 
     this.nextList = []
+    this.stoped = false
+
+    this.observer = new Observer()
+  }
+
+  onFinish (fn) {
+    this.observer.on('onFinish', fn)
   }
 
   autoRun () {
-    if (this.speed > Constants.SPEED.NONE) {
+    if (!this.stoped) {
       setTimeout(() => this.run(), this.speed)
     }
   }
 
-  run () {
-    this.setState()
-    this.play()
-    this.result()
+  play () {
+    this.stoped = false
+    this.run()
 
     return this
   }
 
-  play () {
+  stop () {
+    this.stoped = true
+  }
+
+  run () {
+    this.setState()
     if (this.state.status === Minefield.STATUS.PLAYING) {
       this.calculate()
       this.open()
     }
+    this.result()
   }
 
   calculate () {
@@ -45,8 +61,7 @@ class Bot {
 
   result () {
     if (this.state.status !== Minefield.STATUS.PLAYING) {
-      const result = this.state.status === Minefield.STATUS.LOSS ? 'LOSS! =(' : 'WIN! \\o/'
-      console.log(`Heeey, i'm the Minefield BOT and i'm ${result} game`)
+      this.observer.emit('onFinish', this.state.status)
     }
   }
 

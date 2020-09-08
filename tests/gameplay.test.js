@@ -1,6 +1,12 @@
 import { Minefield } from '../src'
+import { CHECKERS } from '../src/core/constants'
 
 describe('Minefield gameplay', () => {
+  describe('Test open batch', () => {
+    const instance = Minefield.getInstance(Minefield.DEFAULTS.HARD).start()
+    instance.batch([{ col: 0, row: 0 }, { col: 1, row: 1, type: CHECKERS.FLAG }])
+  })
+
   describe('Test flag', () => {
     const instance = Minefield.getInstance(Minefield.DEFAULTS.HARD).start()
 
