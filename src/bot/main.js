@@ -1,4 +1,4 @@
-import Bot from './Bot'
+import Bot from './bot'
 import * as Constants from './constants'
 
 export function getInstance (options) {
