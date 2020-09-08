@@ -51,6 +51,7 @@ export default {
     if (this.state.checked === 0 || this.nextList.length === 0) {
       const rand = (size) => Math.floor(Math.random() * size)
       const emptyCheckers = this.boardMap[Minefield.CHECKERS.EMPTY]
+
       const checker = { origin: 'RANDOM', ...emptyCheckers[rand(emptyCheckers.length)] }
       this.nextList.push(checker)
     }

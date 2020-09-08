@@ -123,7 +123,7 @@ describe('Minefield Bot', () => {
     })
 
     describe('Test GamePlay', () => {
-      test(`should assert Bot can WIN a game`, () => {
+      test('should assert Bot can WIN a game', () => {
         const game = Minefield.getInstance({ rows: 10, cols: 10, mines: 1 })
 
         const bot = Bot.getInstance({ game, process: Bot.PROCESS.BATCH, speed: 10 })
@@ -142,7 +142,7 @@ describe('Minefield Bot', () => {
         } while (game.getState().status === Minefield.STATUS.PLAYING)
       })
 
-      test(`should assert Bot can LOSS a game`, () => {
+      test('should assert Bot can LOSS a game', () => {
         const game = Minefield.getInstance({ rows: 10, cols: 10, mines: 90 })
 
         const bot = Bot.getInstance({ game, process: Bot.PROCESS.BATCH, speed: 10 })

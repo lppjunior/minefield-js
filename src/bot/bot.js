@@ -11,7 +11,9 @@ class Bot {
     })
 
     if (this.speed !== Constants.SPEED.NONE) {
-      this.game.addListener(Minefield.EVENTS.ALL, (data) => this.autoRun(data), this.speed)
+      this.game.addListener(Minefield.EVENTS.ALL, (data) => {
+        this.autoRun(data)
+      }, this.speed)
     }
 
     this.observer = new Observer()
@@ -22,10 +24,9 @@ class Bot {
     this.observer.on('onFinish', fn)
   }
 
-  reset() {
+  reset () {
     this.nextList = []
     this.stoped = false
-
   }
 
   autoRun (data) {
@@ -34,7 +35,11 @@ class Bot {
     }
 
     if (!this.stoped) {
-      setTimeout(() => this.run(), this.speed)
+      if (this.timeout) {
+        clearTimeout(this.timeout)
+      }
+
+      this.timeout = setTimeout(() => this.run(), this.speed)
     }
   }
 
@@ -55,6 +60,7 @@ class Bot {
       this.calculate()
       this.open()
     }
+
     this.result()
   }
 
