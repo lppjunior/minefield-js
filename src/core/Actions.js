@@ -24,7 +24,9 @@ export default {
       return
     }
 
-    this.state.set('updated', [])
+    if (!batchMode) {
+      this.state.set('updated', [])
+    }
 
     if (this.state.getValue(row, col) === CHECKERS.EMPTY) {
       const value = this.board[row][col]
@@ -44,7 +46,9 @@ export default {
       return
     }
 
-    this.state.set('updated', [])
+    if (!batchMode) {
+      this.state.set('updated', [])
+    }
 
     const lastValue = this.state.getValue(row, col)
     if ([CHECKERS.FLAG, CHECKERS.EMPTY].indexOf(lastValue) > -1) {
@@ -55,6 +59,8 @@ export default {
   },
 
   batch: function (payload) {
+    this.state.set('updated', [])
+
     payload.forEach(checker => {
       this[(checker.type === CHECKERS.FLAG) ? 'flag' : 'open'](checker.row, checker.col, true)
     })

@@ -11,20 +11,28 @@ class Bot {
     })
 
     if (this.speed !== Constants.SPEED.NONE) {
-      this.game.addListener(Minefield.EVENTS.ALL, () => this.autoRun(), this.speed)
+      this.game.addListener(Minefield.EVENTS.ALL, (data) => this.autoRun(data), this.speed)
     }
 
-    this.nextList = []
-    this.stoped = false
-
     this.observer = new Observer()
+    this.reset()
   }
 
   onFinish (fn) {
     this.observer.on('onFinish', fn)
   }
 
-  autoRun () {
+  reset() {
+    this.nextList = []
+    this.stoped = false
+
+  }
+
+  autoRun (data) {
+    if (data.event === Minefield.EVENTS.START) {
+      this.reset()
+    }
+
     if (!this.stoped) {
       setTimeout(() => this.run(), this.speed)
     }
