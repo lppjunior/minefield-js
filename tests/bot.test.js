@@ -123,6 +123,44 @@ describe('Minefield Bot', () => {
     })
 
     describe('Test GamePlay', () => {
+      test(`should assert Bot can WIN a game`, () => {
+        const game = Minefield.getInstance({ rows: 10, cols: 10, mines: 1 })
+
+        const bot = Bot.getInstance({ game, process: Bot.PROCESS.BATCH, speed: 10 })
+        bot.onFinish((result) => {
+          if (result === Minefield.STATUS.LOSS) {
+            game.reset()
+          } else {
+            expect(result).toEqual(Minefield.STATUS.WIN)
+          }
+        })
+
+        game.start()
+
+        do {
+          bot.play().play()
+        } while (game.getState().status === Minefield.STATUS.PLAYING)
+      })
+
+      test(`should assert Bot can LOSS a game`, () => {
+        const game = Minefield.getInstance({ rows: 10, cols: 10, mines: 90 })
+
+        const bot = Bot.getInstance({ game, process: Bot.PROCESS.BATCH, speed: 10 })
+        bot.onFinish((result) => {
+          if (result === Minefield.STATUS.WIN) {
+            game.reset()
+          } else {
+            expect(result).toEqual(Minefield.STATUS.LOSS)
+          }
+        })
+
+        game.start()
+
+        do {
+          bot.play().play()
+        } while (game.getState().status === Minefield.STATUS.PLAYING)
+      })
+
       Object.keys({
         ...Minefield.DEFAULTS,
         PERSONALIZED: {
@@ -144,25 +182,6 @@ describe('Minefield Bot', () => {
 
                 do {
                   bot.play()
-                } while (game.getState().status === Minefield.STATUS.PLAYING)
-              })
-
-              test(`should assert Bot can WIN a ${key} game`, () => {
-                const game = Minefield.getInstance(Minefield.DEFAULTS[key])
-
-                const bot = Bot.getInstance({ game, process: Bot.PROCESS[processKey], speed })
-                bot.onFinish((result) => {
-                  if (result === Minefield.STATUS.LOSS) {
-                    game.reset()
-                  } else {
-                    expect(result).toEqual(Minefield.STATUS.WIN)
-                  }
-                })
-
-                game.start()
-
-                do {
-                  bot.play().play()
                 } while (game.getState().status === Minefield.STATUS.PLAYING)
               })
             })
