@@ -78,6 +78,8 @@ describe('Minefield Bot', () => {
         test('should assert method instance.stop was called', () => {
           jest.spyOn(instance, 'stop')
           instance.stop()
+          game.flag(0, 0)
+          instance.play()
           expect(instance.stop).toHaveBeenCalled()
         })
 
@@ -101,6 +103,23 @@ describe('Minefield Bot', () => {
 
         game.start()
       })
+
+      describe('Test autoRun', () => {
+        test('should assert autoRun can be called', function () {
+          const game = Minefield.getInstance(Minefield.DEFAULTS.EASY)
+          Bot.getInstance({
+            game,
+            process: Bot.PROCESS.UNIT,
+            speed: 0
+          })
+
+          jest.useFakeTimers()
+          game.start()
+          expect(setTimeout).toHaveBeenCalledTimes(1)
+          expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 0)
+          jest.runAllTimers()
+        })
+      })
     })
 
     describe('Test GamePlay', () => {
@@ -114,7 +133,7 @@ describe('Minefield Bot', () => {
       }).forEach(key => {
         describe(`Test ${key} Minefield mode`, () => {
           Object.keys(Bot.PROCESS).forEach(processKey => {
-            const speed = (Bot.PROCESS[processKey] === Bot.PROCESS.UNIT) ? Bot.SPEED.NONE : 10
+            const speed = Bot.SPEED.NONE
 
             describe(`Test ${processKey} bot mode`, () => {
               test(`should assert Bot can play a complete ${key} game`, () => {
@@ -123,13 +142,9 @@ describe('Minefield Bot', () => {
 
                 game.start()
 
-                if (Bot.PROCESS[processKey] === Bot.PROCESS.UNIT) {
-                  do {
-                    bot.play()
-                  } while (game.getState().status === Minefield.STATUS.PLAYING)
-                } else {
-                  console.log(speed, processKey)
-                }
+                do {
+                  bot.play()
+                } while (game.getState().status === Minefield.STATUS.PLAYING)
               })
 
               test(`should assert Bot can WIN a ${key} game`, () => {
@@ -146,33 +161,9 @@ describe('Minefield Bot', () => {
 
                 game.start()
 
-                if (Bot.PROCESS[processKey] === Bot.PROCESS.UNIT) {
-                  do {
-                    bot.play()
-                  } while (game.getState().status === Minefield.STATUS.PLAYING)
-                }
-              })
-
-              test(`should assert Bot can LOSS a ${key} game`, () => {
-                const game = Minefield.getInstance(Minefield.DEFAULTS[key])
-
-                const bot = Bot.getInstance({ game, process: Bot.PROCESS[processKey], speed })
-
-                bot.onFinish((result) => {
-                  if (result === Minefield.STATUS.WIN) {
-                    game.reset()
-                  } else {
-                    expect(result).toEqual(Minefield.STATUS.LOSS)
-                  }
-                })
-
-                game.start()
-
-                if (Bot.PROCESS[processKey] === Bot.PROCESS.UNIT) {
-                  do {
-                    bot.play()
-                  } while (game.getState().status === Minefield.STATUS.PLAYING)
-                }
+                do {
+                  bot.play().play()
+                } while (game.getState().status === Minefield.STATUS.PLAYING)
               })
             })
           })

@@ -6,7 +6,9 @@ import * as Constants from './constants'
 
 class Bot {
   constructor (options) {
-    Object.keys(options).forEach(key => { this[key] = options[key] })
+    Object.keys(options).forEach(key => {
+      this[key] = options[key]
+    })
 
     if (this.speed !== Constants.SPEED.NONE) {
       this.game.addListener(Minefield.EVENTS.ALL, () => this.autoRun(), this.speed)
@@ -23,7 +25,7 @@ class Bot {
   }
 
   autoRun () {
-    if (this.speed > Constants.SPEED.NONE && !this.stoped) {
+    if (!this.stoped) {
       setTimeout(() => this.run(), this.speed)
     }
   }
@@ -64,8 +66,6 @@ class Bot {
   }
 
   open () {
-    // console.log(this.process, this.process === Constants.PROCESS.BATCH)
-
     const checkers = (this.process === Constants.PROCESS.BATCH)
       ? [].concat(this.nextList)
       : [this.nextList.pop()]
