@@ -3,20 +3,20 @@ import {
 } from './default'
 
 import {
-  EVENT
-} from './event'
+  EVENTS
+} from './events'
 
 import {
   STATUS
 } from './status'
 
 import {
-  CHECKER
-} from './checker'
+  CHECKERS
+} from './checkers'
 
 export {
   DEFAULTS,
-  EVENT,
+  EVENTS,
   STATUS,
-  CHECKER
+  CHECKERS
 }
