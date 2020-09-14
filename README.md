@@ -24,11 +24,12 @@ const Minefield = {
 // Game instance structure Minefield.getInstance()
 const instance = {
     addListener: (event, fn) => {},
-    start: () =>  {},
-    open: (x, y) =>  {},
-    flag: (x, y) =>  {},
-    getState: () =>  {},
-    reset: () =>  {}
+    start: () => game.start(),
+    open: (x, y) => game.open(x, y),
+    flag: (x, y) => game.flag(x, y),
+    batch: (payload) => game.batch(payload),
+    getState: () => game.getState(),
+    reset: () => game.start()
 }
 ```
 
@@ -57,6 +58,12 @@ minefield.flag(row, cow) // toggle action
 
 // Open a checker
 minefield.open(row, cow)
+
+// Open or make flag to many checker
+minefield.batck([
+    { row, cow },
+    { row, cow, flag: true }
+])
 ```
 
 **Options**
