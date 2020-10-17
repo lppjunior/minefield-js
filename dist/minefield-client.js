@@ -73,6 +73,7 @@ class MinefieldController {
 
   nextTurn(state) {
     this.state = state
+
     this.mountBoard()
     this.log()
   }
