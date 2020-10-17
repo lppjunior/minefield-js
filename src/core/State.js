@@ -12,6 +12,7 @@ class State {
     this.state = {
       rows: this.options.rows,
       cols: this.options.cols,
+      mines: this.options.mines,
       total: this.options.cols * this.options.rows - this.options.mines,
       status: STATUS.PLAYING,
       checked: 0,
