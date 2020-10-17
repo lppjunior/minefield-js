@@ -116,8 +116,9 @@ game..play()
 {
     rows: 10,
     cols: 10,
-    total: 10,
-    status: PLAYING,
+    mines: 10,
+    total: 100,
+    status: PLAYING, // LOSS | PLAYING | WIN
     checked: 0,
     updated: [],
     board: [['']], // Array(rows)(cols)
