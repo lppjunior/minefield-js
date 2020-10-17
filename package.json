@@ -1,7 +1,7 @@
 {
   "name": "minefield-js",
-  "version": "1.2.2",
-  "description": "Dice Roll is a project of rolling dice javascript based. Developed to support any application that needs data with random numbers.",
+  "version": "1.1.0",
+  "description": "A javascript implementation of the classic minefield game",
   "private": true,
   "main": "index.js",
   "scripts": {
