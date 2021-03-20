@@ -26,7 +26,7 @@ class Bot {
 
   reset () {
     this.nextList = []
-    this.stoped = false
+    this.stopped = false
   }
 
   autoRun (data) {
@@ -34,7 +34,7 @@ class Bot {
       this.reset()
     }
 
-    if (!this.stoped) {
+    if (!this.stopped) {
       if (this.timeout) {
         clearTimeout(this.timeout)
       }
@@ -44,14 +44,14 @@ class Bot {
   }
 
   play () {
-    this.stoped = false
+    this.stopped = false
     this.run()
 
     return this
   }
 
   stop () {
-    this.stoped = true
+    this.stopped = true
   }
 
   run () {
