@@ -3,7 +3,7 @@ import { CHECKERS } from './constants'
 export default {
   updateValue: function (row, col, value) {
     this.state.setValue(row, col, value)
-    this.state.get('updated').push({ row, col, value })
+    this.state.get('lastUpdate').push({ row, col, value })
 
     if ([CHECKERS.EMPTY, CHECKERS.FLAG, CHECKERS.MINE].indexOf(value) === -1) {
       this.state.set('checked', this.state.get('checked') + 1)
@@ -25,7 +25,7 @@ export default {
     }
 
     if (!batchMode) {
-      this.state.set('updated', [])
+      this.state.set('lastUpdate', [])
     }
 
     if (this.state.getValue(row, col) === CHECKERS.EMPTY) {
@@ -47,7 +47,7 @@ export default {
     }
 
     if (!batchMode) {
-      this.state.set('updated', [])
+      this.state.set('lastUpdate', [])
     }
 
     const lastValue = this.state.getValue(row, col)
@@ -59,7 +59,7 @@ export default {
   },
 
   batch: function (payload) {
-    this.state.set('updated', [])
+    this.state.set('lastUpdate', [])
 
     payload.forEach(checker => {
       this[(checker.type === CHECKERS.FLAG) ? 'flag' : 'open'](checker.row, checker.col, true)

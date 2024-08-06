@@ -15,7 +15,10 @@ Minefield project has no explicit constructor, this implementation allows the me
 ```js
 const Minefield = {
     getInstance: function (options = { rows, cols, mines, debug }) => {},
-    CHECKERS: { EMPTY, FLAG, MINE, NUMBER_0, NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4, NUMBER_5, NUMBER_6, NUMBER_7, NUMBER_8 },
+    CHECKERS: {
+        EMPTY, FLAG, MINE, NUMBER_0, NUMBER_1, NUMBER_2, NUMBER_3,
+        NUMBER_4, NUMBER_5, NUMBER_6, NUMBER_7, NUMBER_8
+    },
     DEFAULTS: { EASY, MEDIUM, HARD },
     EVENTS: { ALL, START, NEXT_TURN, FINISH },
     STATUS: { LOSS, PLAYING, WIN }

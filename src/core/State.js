@@ -16,13 +16,9 @@ class State {
       total: this.options.cols * this.options.rows - this.options.mines,
       status: STATUS.PLAYING,
       checked: 0,
-      updated: [],
-      board: Array(this.options.rows)
-        .fill(null)
-        .map(() => Array(this.options.cols)
-          .fill(null)
-          .map(() => '')
-        )
+      lastUpdate: [],
+      board: Array(this.options.rows).fill(null)
+        .map(() => Array(this.options.cols).fill(''))
     }
   }
 
