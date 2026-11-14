@@ -129,13 +129,30 @@ game..play()
 }
 ```
 
-## Running example project
+## Workspace structure
 
-Into src-example you can run a single implementation example.
+- `projects/main`: game rules, state, board generation, and the event-based API.
+- `projects/bot`: automatic play and deterministic move hints.
+- `projects/game`: the React interface and browser entry point.
 
-Run this command sequence
+The game and bot consume the main package through its public API. The interface
+subscribes to game events and renders the state in React.
+
+## Development
+
+Install dependencies and start the React game from the repository root:
 
 ```shell
 npm install
-npm start
+yarn start
 ```
+
+Run the package checks from the repository root:
+
+```shell
+npm test
+npm run lint
+npm run build
+```
+
+The development server is available at `http://localhost:9000`.

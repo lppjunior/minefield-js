@@ -1,4 +1,4 @@
-import * as Minefield from '../../main'
+import * as Minefield from '@minefield/main'
 
 export default {
   calculateNextList: function () {
@@ -21,6 +21,7 @@ export default {
             const itens = checker.around[Minefield.CHECKERS.EMPTY]
             itens.forEach(item => {
               item.type = Minefield.CHECKERS.FLAG
+              item.origin = 'ADD_FLAG'
             })
 
             this.nextList = [...this.nextList, ...itens]
@@ -51,6 +52,9 @@ export default {
     if (this.state.checked === 0 || this.nextList.length === 0) {
       const rand = (size) => Math.floor(Math.random() * size)
       const emptyCheckers = this.boardMap[Minefield.CHECKERS.EMPTY]
+      if (emptyCheckers.length === 0) {
+        return
+      }
 
       const checker = { origin: 'RANDOM', ...emptyCheckers[rand(emptyCheckers.length)] }
       this.nextList.push(checker)

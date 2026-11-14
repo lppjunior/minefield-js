@@ -4,27 +4,42 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const path = require('path')
 
 module.exports = {
-  entry: {
-    minefield: './src'
-  },
+  entry: path.resolve(__dirname, 'projects/game/src/index.jsx'),
   output: {
-    filename: '[name].min.js',
+    filename: 'minefield.min.js',
     path: path.resolve(__dirname, 'dist'),
-    libraryTarget: 'umd'
+    publicPath: '/'
+  },
+  resolve: {
+    extensions: ['.js', '.jsx']
+  },
+  module: {
+    rules: [
+      {
+        test: /\.jsx?$/,
+        include: path.resolve(__dirname, 'projects/game/src'),
+        use: {
+          loader: 'babel-loader',
+          options: {
+            rootMode: 'upward'
+          }
+        }
+      }
+    ]
   },
   devtool: 'source-map',
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: 'Minefield JS',
-      favicon: 'src-example/favicon.png',
-      template: 'src-example/index.html'
+      title: 'Campo Minado Smart',
+      template: path.resolve(__dirname, 'projects/game/public/index.html')
     }),
     new CopyPlugin({
       patterns: [
-        { from: 'src-example/styles.css', to: '' },
-        { from: 'src-example/main.js', to: '' },
-        { from: 'src-example/minefield-client.js', to: '' }
+        {
+          from: path.resolve(__dirname, 'projects/game/src/styles.css'),
+          to: 'styles.css'
+        }
       ]
     })
   ],

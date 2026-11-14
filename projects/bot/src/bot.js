@@ -1,6 +1,6 @@
 import { Observer } from '@lppjunior/pattern-js'
 
-import * as Minefield from '../main'
+import * as Minefield from '@minefield/main'
 import * as Modules from './modules'
 import * as Constants from './constants'
 
@@ -25,6 +25,11 @@ class Bot {
   }
 
   reset () {
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+    }
+
+    this.timeout = null
     this.nextList = []
     this.stopped = false
   }
@@ -39,7 +44,10 @@ class Bot {
         clearTimeout(this.timeout)
       }
 
-      this.timeout = setTimeout(() => this.run(), this.speed)
+      this.timeout = setTimeout(() => {
+        this.timeout = null
+        if (!this.stopped) this.run()
+      }, this.speed)
     }
   }
 
@@ -52,9 +60,17 @@ class Bot {
 
   stop () {
     this.stopped = true
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+      this.timeout = null
+    }
   }
 
   run () {
+    if (this.stopped) {
+      return
+    }
+
     this.setState()
     if (this.state.status === Minefield.STATUS.PLAYING) {
       this.calculate()
@@ -73,6 +89,28 @@ class Bot {
     this.calculateNextList()
   }
 
+  getHint () {
+    this.setState()
+
+    if (this.state.status !== Minefield.STATUS.PLAYING) {
+      return null
+    }
+
+    this.nextList = []
+    this.calculate()
+
+    const move = this.nextList.find(checker => checker.origin !== 'RANDOM')
+    if (!move) {
+      return null
+    }
+
+    return {
+      row: move.row,
+      col: move.col,
+      action: move.type === Minefield.CHECKERS.FLAG ? 'flag' : 'open'
+    }
+  }
+
   result () {
     if (this.state.status !== Minefield.STATUS.PLAYING) {
       this.observer.emit('onFinish', this.state.status)
@@ -80,6 +118,10 @@ class Bot {
   }
 
   open () {
+    if (this.nextList.length === 0) {
+      return
+    }
+
     const checkers = (this.process === Constants.PROCESS.BATCH)
       ? [].concat(this.nextList)
       : [this.nextList.pop()]

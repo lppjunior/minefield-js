@@ -1,4 +1,4 @@
-import * as Minefield from '../../main'
+import * as Minefield from '@minefield/main'
 
 export default {
   makeBoardMap: function () {
@@ -26,7 +26,7 @@ export default {
 
   calcAround: function (checker) {
     const around = { out: 0 }
-    Object.keys(Minefield.CHECKERS).map((value) => { around[Minefield.CHECKERS[value]] = [] })
+    Object.keys(Minefield.CHECKERS).forEach((value) => { around[Minefield.CHECKERS[value]] = [] })
 
     const { rows, cols } = this.state
     if ((checker.row === 0 && (checker.col === 0 || checker.col === cols - 1)) ||

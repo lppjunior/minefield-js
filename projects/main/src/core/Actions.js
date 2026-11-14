@@ -12,7 +12,7 @@ export default {
 
   openAll: function () {
     const board = this.state.get('board')
-    board.map((_, row) => _.map((__, col) => {
+    board.forEach((_, row) => _.forEach((__, col) => {
       board[row][col] = this.board[row][col]
     }))
 
