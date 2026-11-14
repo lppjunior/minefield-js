@@ -32,7 +32,9 @@ module.exports = {
   // webpack-dev-server configurations
   devServer: {
     compress: true,
-    contentBase: path.join(__dirname, 'dist'),
+    static: {
+      directory: path.join(__dirname, 'dist')
+    },
     open: true,
     port: 9000
   }
