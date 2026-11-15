@@ -1,0 +1,22 @@
+{
+  "name": "@minefield/game",
+  "version": "1.1.0",
+  "private": true,
+  "main": "src/index.jsx",
+  "scripts": {
+    "start": "vite --config vite.config.mjs",
+    "build": "vite build --config vite.config.mjs",
+    "lint": "standard src"
+  },
+  "dependencies": {
+    "@minefield/bot": "1.1.0",
+    "@minefield/main": "1.1.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "standard": "^17.1.2",
+    "vite": "^8.3.8"
+  }
+}

@@ -1,36 +1,26 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: minefield-js Integration Action
+name: Minefield CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [main]
   pull_request:
-    branches: [ master ]
-
-env:
-  NODE_VERSION: 12.x
+    branches: [main]
 
 jobs:
   build:
-    name: Build and Test
+    name: Test and build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 2
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ env.node-version }}
-    - name: Install dependencies
-      run: npm install
-    - name: Run Standard
-      run: npx standard
-    - name: Run Jest
-      run: npm run jest
-    - name: Run Build
-      run: npm run webpack
-    - name: List output files
-      run: ls dist
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Run lint
+        run: npm run lint
+      - name: Build game
+        run: npm run build

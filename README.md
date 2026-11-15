@@ -1,141 +1,75 @@
-# minefield-js
+# Minefield JS
 
-This is a javascript implementation of the classic minefield game. The objective of this project is to offer a complete implementation of all the logic of the game.
+Campo Minado Smart é um jogo de Campo Minado para navegador. O projeto separa
+as regras do jogo da interface React e do bot, com comunicação por eventos.
 
-With a simple implementation, you will have the ability to implement the game interface without worrying about logic, rules, blocks, checks, in short.
+## Requisitos
 
-## How to use
+- Node.js 26.x
+- npm 8 ou superior
 
-First, you want to understand the implementation.
+## Executar localmente
 
-### Using project
-Minefield project has no explicit constructor, this implementation allows the methods, classes, properties and state of the game to be safe from external access. Keeping your game data completely safe.
-
-**Class structure**
-```js
-const Minefield = {
-    getInstance: function (options = { rows, cols, mines, debug }) => {},
-    CHECKERS: {
-        EMPTY, FLAG, MINE, NUMBER_0, NUMBER_1, NUMBER_2, NUMBER_3,
-        NUMBER_4, NUMBER_5, NUMBER_6, NUMBER_7, NUMBER_8
-    },
-    DEFAULTS: { EASY, MEDIUM, HARD },
-    EVENTS: { ALL, START, NEXT_TURN, FINISH },
-    STATUS: { LOSS, PLAYING, WIN }
-}
-
-// Game instance structure Minefield.getInstance()
-const instance = {
-    addListener: (event, fn) => {},
-    start: () => game.start(),
-    open: (x, y) => game.open(x, y),
-    flag: (x, y) => game.flag(x, y),
-    batch: (payload) => game.batch(payload),
-    getState: () => game.getState(),
-    reset: () => game.start()
-}
-```
-
-## Examples
-```js
-//Make minefield instance
-const minefield = Minefield.getInstance({
-    rows: 10,
-    cols: 10,
-    mines: 10
-})
-
-// Add event listeners
-minefield.addListener(minefield.START, (state) => {})
-minefield.addListener(minefield.NEXT_TURN, (state) => {})
-minefield.addListener(minefield.FINISH, (state) => {})
-
-// Outher listener format
-minefield.addListener(minefield.ALL, (data = { event, state }) => {})
-
-// Starting application
-minefield.start()
-
-// Make flag checker
-minefield.flag(row, cow) // toggle action
-
-// Open a checker
-minefield.open(row, cow)
-
-// Open or make flag to many checker
-minefield.batck([
-    { row, cow },
-    { row, cow, flag: true }
-])
-```
-
-**Options**
-```js
-// Example 1: No parameter
-// Use Minefield.DEFAULTS.MEDIUM by default
-Minefield.getInstance()
-
-// Example 2: Complete options
-Minefield.getInstance({
-    rows: 10,
-    cols: 10,
-    mines: 10,
-    debug: true // default false
-})
-
-// Example 3: Using Defaults
-Minefield.getInstance(Minefield.DEFAULTS.EASY)
-
-// Example 4: Using Defaults + attributes
-Minefield.getInstance({
-    ...Minefield.DEFAULTS.HARD,
-    debug: true
-})
-```
-
-**Gameplay**
-```js
-function play(event, state) {
-    switch (event) {
-        case Minefield.EVENTS.START:
-        case Minefield.EVENTS.NEXT_TURN:
-            // game.flag(x, y)
-            // game.open(x, y)
-            break;
-        case Minefield.EVENTS.FINISH:
-            // check game status (state.status)
-            break;
-    }
-}
-
-const game = Minefield.getInstance()
-
-game.addListener(minefield.ALL, play)
-game..play()
-
-```
-**State**
-```js
-{
-    rows: 10,
-    cols: 10,
-    mines: 10,
-    total: 100,
-    status: PLAYING, // LOSS | PLAYING | WIN
-    checked: 0,
-    updated: [],
-    board: [['']], // Array(rows)(cols)
-    debug: { board: [['']] } //only added when debug is enabled
-}
-```
-
-## Running example project
-
-Into src-example you can run a single implementation example.
-
-Run this command sequence
+Na raiz do repositório, instale as dependências e inicie a interface:
 
 ```shell
-npm install
+npm ci
 npm start
 ```
+
+O servidor de desenvolvimento abre em `http://localhost:9000`.
+
+## Comandos
+
+```shell
+npm test       # testes do motor e do bot
+npm run lint   # lint dos workspaces
+npm run build  # build de produção em dist/
+```
+
+O workspace da interface usa Vite para desenvolvimento e build.
+
+## Workspaces
+
+- `projects/main`: motor do jogo, geração do tabuleiro e API baseada em eventos.
+- `projects/bot`: bot que joga usando a API pública do motor.
+- `projects/game`: interface React responsiva e aplicação de navegador.
+
+## Regras e controles
+
+- Escolha o tamanho do tabuleiro e a dificuldade antes de iniciar.
+- Clique/toque abre uma casa; clique direito ou toque prolongado marca uma bandeira.
+- O botão de bandeira da barra superior também funciona em telas touch.
+- Abrir um número com as bandeiras corretas ao redor revela as casas vizinhas.
+- A primeira casa aberta é segura.
+- O resumo das partidas é salvo localmente no navegador; não há envio para servidor.
+
+## Usar o motor
+
+O pacote `@minefield/main` exporta `getInstance`, `CHECKERS`, `DEFAULTS`,
+`EVENTS` e `STATUS`. Exemplo em um consumidor com suporte a ES modules:
+
+```js
+import Minefield from '@minefield/main'
+
+const game = Minefield.getInstance({
+  rows: 9,
+  cols: 9,
+  mines: 10,
+  safeFirstClick: true
+})
+
+game.addListener(Minefield.EVENTS.ALL, ({ event, state }) => {
+  console.log(event, state)
+})
+
+game.start()
+game.open(0, 0)
+game.flag(0, 1)
+```
+
+## SEO e compartilhamento
+
+A página inclui metadados em português, Open Graph, Twitter Cards e dados
+estruturados para o jogo. Configure a URL canônica e URLs absolutas de
+compartilhamento quando o domínio de publicação estiver definido.

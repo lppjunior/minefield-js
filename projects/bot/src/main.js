@@ -7,6 +7,7 @@ export function getInstance (options) {
   return {
     play: () => bot.play(),
     stop: () => bot.stop(),
+    getHint: () => bot.getHint(),
     setSpeed: (speed) => { bot.speed = speed },
     setProcess: (process) => { bot.process = process },
     onFinish: (fn) => { bot.onFinish(fn) }

@@ -1,0 +1,24 @@
+{
+  "name": "@minefield/bot",
+  "version": "1.1.0",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest --config ../../jest.config.cjs --selectProjects bot --runInBand",
+    "lint": "standard src tests"
+  },
+  "dependencies": {
+    "@lppjunior/pattern-js": "git+https://github.com/lppjunior/pattern-js.git#main",
+    "@minefield/main": "1.1.0"
+  },
+  "devDependencies": {
+    "babel-jest": "^30.5.2",
+    "jest": "^30.5.2",
+    "standard": "^17.1.2"
+  },
+  "standard": {
+    "env": [
+      "jest"
+    ]
+  }
+}

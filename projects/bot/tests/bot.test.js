@@ -1,7 +1,5 @@
-import {
-  Bot,
-  Minefield
-} from '../src'
+import { Bot } from '../src'
+import { Minefield } from '@minefield/main'
 
 describe('Minefield Bot', () => {
   describe('Test existance of all public methods and attributes', () => {
@@ -62,7 +60,7 @@ describe('Minefield Bot', () => {
         const instance = Bot.getInstance({
           game,
           process: Bot.PROCESS.UNIT,
-          speed: 200
+          speed: Bot.SPEED.NONE
         })
 
         test('should assert method Bot.getInstance was called', () => {
@@ -101,13 +99,44 @@ describe('Minefield Bot', () => {
           expect(instance.onFinish).toHaveBeenCalled()
         })
 
+        test('should return only a logically safe hint', () => {
+          const hintedGame = Minefield.getInstance({ mock: '[[1, -1], [1, 1]]' })
+          hintedGame.start()
+          hintedGame.open(0, 0)
+          hintedGame.flag(0, 1)
+
+          const hintedBot = Bot.getInstance({
+            game: hintedGame,
+            process: Bot.PROCESS.UNIT,
+            speed: Bot.SPEED.NONE
+          })
+
+          expect(hintedBot.getHint()).toEqual(expect.objectContaining({
+            action: 'open'
+          }))
+        })
+
+        test('should not return a random guess as a safe hint', () => {
+          const unstartedGame = Minefield.getInstance(Minefield.DEFAULTS.EASY)
+          unstartedGame.start()
+
+          const hintBot = Bot.getInstance({
+            game: unstartedGame,
+            process: Bot.PROCESS.UNIT,
+            speed: Bot.SPEED.NONE
+          })
+
+          expect(hintBot.getHint()).toBeNull()
+        })
+
         game.start()
+        instance.stop()
       })
 
       describe('Test autoRun', () => {
         test('should assert autoRun can be called', function () {
           const game = Minefield.getInstance(Minefield.DEFAULTS.EASY)
-          Bot.getInstance({
+          const bot = Bot.getInstance({
             game,
             process: Bot.PROCESS.UNIT,
             speed: 0
@@ -115,9 +144,9 @@ describe('Minefield Bot', () => {
 
           jest.useFakeTimers()
           game.start()
-          // expect(setTimeout).toHaveBeenCalledTimes(1)
-          // expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 0)
           jest.runAllTimers()
+          bot.stop()
+          jest.useRealTimers()
         })
       })
     })
@@ -140,6 +169,7 @@ describe('Minefield Bot', () => {
         do {
           bot.play().play()
         } while (game.getState().status === Minefield.STATUS.PLAYING)
+        bot.stop()
       })
 
       test('should assert Bot can LOSS a game', () => {
@@ -159,6 +189,7 @@ describe('Minefield Bot', () => {
         do {
           bot.play().play()
         } while (game.getState().status === Minefield.STATUS.PLAYING)
+        bot.stop()
       })
 
       Object.keys({
