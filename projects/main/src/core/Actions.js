@@ -1,4 +1,5 @@
 import { CHECKERS } from './constants'
+import Board from './Board'
 
 export default {
   updateValue: function (row, col, value) {
@@ -24,6 +25,13 @@ export default {
       return
     }
 
+    if (this.options.safeFirstClick &&
+      this.state.get('checked') === 0 &&
+      this.state.getValue(row, col) === CHECKERS.EMPTY &&
+      this.board[row][col] === CHECKERS.MINE) {
+      this.board = Board.make(this.options, { row, col })
+    }
+
     if (!batchMode) {
       this.state.set('lastUpdate', [])
     }
@@ -39,6 +47,47 @@ export default {
     }
 
     if (!batchMode) this.nextTurn()
+  },
+
+  chord: function (row, col) {
+    if (this.state.isFinish()) {
+      return
+    }
+
+    const value = this.state.getValue(row, col)
+    if (typeof value !== 'number' || value < CHECKERS.NUMBER_1 || value > CHECKERS.NUMBER_8) {
+      return
+    }
+
+    const covered = []
+    let flags = 0
+
+    for (let neighborRow = row - 1; neighborRow <= row + 1; neighborRow++) {
+      for (let neighborCol = col - 1; neighborCol <= col + 1; neighborCol++) {
+        if (this.board[neighborRow] === undefined ||
+          this.board[neighborRow][neighborCol] === undefined ||
+          (neighborRow === row && neighborCol === col)) {
+          continue
+        }
+
+        const neighbor = this.state.getValue(neighborRow, neighborCol)
+        if (neighbor === CHECKERS.FLAG) {
+          flags++
+        } else if (neighbor === CHECKERS.EMPTY) {
+          covered.push({ row: neighborRow, col: neighborCol })
+        }
+      }
+    }
+
+    if (flags !== value || covered.length === 0) {
+      return
+    }
+
+    this.state.set('lastUpdate', [])
+    covered.forEach(({ row: neighborRow, col: neighborCol }) => {
+      this.open(neighborRow, neighborCol, true)
+    })
+    this.nextTurn()
   },
 
   flag: function (row, col, batchMode = false) {

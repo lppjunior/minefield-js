@@ -39,6 +39,10 @@ module.exports = {
         {
           from: path.resolve(__dirname, 'projects/game/src/styles.css'),
           to: 'styles.css'
+        },
+        {
+          from: path.resolve(__dirname, 'projects/game/public/images/minefield-promo.webp'),
+          to: 'images/minefield-promo.webp'
         }
       ]
     })

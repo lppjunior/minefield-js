@@ -1,42 +1,47 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Bot } from '@minefield/bot'
 import { Minefield } from '@minefield/main'
 
-const LEVELS = {
-  beginner: {
-    label: 'Iniciante',
-    shortLabel: 'Iniciante (9×9)',
-    description: '9×9 · 10 minas',
-    rows: 9,
-    cols: 9,
-    mines: 10
-  },
-  intermediate: {
-    label: 'Intermediário',
-    shortLabel: 'Intermediário (16×16)',
-    description: '16×16 · 40 minas',
-    rows: 16,
-    cols: 16,
-    mines: 40
-  },
-  expert: {
-    label: 'Especialista',
-    shortLabel: 'Especialista (30×16)',
-    description: '30×16 · 99 minas',
-    rows: 16,
-    cols: 30,
-    mines: 99
+const HISTORY_KEY = 'minefield.results.v1'
+const MAX_HISTORY = 50
+const MAX_DIMENSION = 60
+const FULLSCREEN_CELL_SIZE = 28
+
+const SIZES = [
+  { key: 'small', label: 'Pequeno', rows: 9, cols: 9 },
+  { key: 'medium', label: 'Médio', rows: 16, cols: 16 },
+  { key: 'large', label: 'Grande', rows: 16, cols: 30 },
+  { key: 'fullscreen', label: 'Tela inteira' },
+  { key: 'custom', label: 'Personalizado' }
+]
+
+const DIFFICULTIES = [
+  { key: 'easy', label: 'Fácil', percent: 10 },
+  { key: 'normal', label: 'Normal', percent: 15 },
+  { key: 'hard', label: 'Difícil', percent: 20 },
+  { key: 'insane', label: 'Insano', percent: 25 }
+]
+
+function clamp (value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function getFullscreenSize (width = window.innerWidth, height = window.innerHeight) {
+  return {
+    cols: clamp(Math.floor(width / FULLSCREEN_CELL_SIZE), 5, MAX_DIMENSION),
+    rows: clamp(Math.floor((height - 48) / FULLSCREEN_CELL_SIZE), 5, MAX_DIMENSION)
   }
 }
 
-const EMPTY_HINT = 'Peça uma dica para procurar uma jogada deduzida pelo tabuleiro.'
-
-function snapshot (state) {
+function getViewport () {
   return {
-    ...state,
-    board: state.board.map(row => [...row]),
-    lastUpdate: [...state.lastUpdate]
+    width: window.innerWidth,
+    height: window.innerHeight
   }
+}
+
+function getMineCount (rows, cols, percent) {
+  const total = rows * cols
+  return clamp(Math.round(total * percent / 100), 1, total - 1)
 }
 
 function formatTime (seconds) {
@@ -45,77 +50,205 @@ function formatTime (seconds) {
   return `${minutes}:${remainder}`
 }
 
-function countFlags (state) {
-  return state.board.reduce((count, row) => (
-    count + row.filter(value => value === Minefield.CHECKERS.FLAG).length
-  ), 0)
+function formatCounter (value) {
+  return value < 0
+    ? `-${String(Math.abs(value)).padStart(2, '0')}`
+    : String(value).padStart(3, '0')
+}
+
+function cellKey (row, col) {
+  return `${row},${col}`
+}
+
+function parseCellKey (key) {
+  return key.split(',').map(Number)
+}
+
+function snapshot (state) {
+  return {
+    ...state,
+    board: state.board.map(row => [...row]),
+    lastUpdate: state.lastUpdate.map(update => ({ ...update }))
+  }
+}
+
+function loadHistory () {
+  try {
+    const stored = window.localStorage.getItem(HISTORY_KEY)
+    if (!stored) return []
+
+    const history = JSON.parse(stored)
+    if (!Array.isArray(history)) {
+      throw new TypeError('Saved game history must be an array.')
+    }
+
+    return history.slice(0, MAX_HISTORY)
+  } catch (error) {
+    console.error('Unable to load saved minefield results.', error)
+    return []
+  }
+}
+
+function saveHistory (history) {
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+  } catch (error) {
+    console.error('Unable to save minefield results.', error)
+  }
+}
+
+function MineLogo () {
+  return (
+    <svg aria-hidden='true' className='mine-logo' viewBox='0 0 40 40'>
+      <rect height='40' rx='9' width='40' />
+      <path d='M20 5v5m-8 6-2-2m20 0-2 2m-19 8-2 1m24-1 2 1m-13 9v-3' />
+      <circle cx='20' cy='22' r='7' />
+      <path d='m19 16 3-5' />
+      <circle className='mine-logo-fuse' cx='23' cy='10' r='2' />
+    </svg>
+  )
 }
 
 function App () {
-  const [level, setLevel] = useState('intermediate')
-  const [config, setConfig] = useState(LEVELS.intermediate)
+  const [screen, setScreen] = useState('menu')
+  const [sizeKey, setSizeKey] = useState('medium')
+  const [difficultyKey, setDifficultyKey] = useState('normal')
+  const [customRows, setCustomRows] = useState('16')
+  const [customCols, setCustomCols] = useState('16')
+  const [menuError, setMenuError] = useState('')
+  const [viewport, setViewport] = useState(getViewport)
+  const [config, setConfig] = useState(null)
   const [gameState, setGameState] = useState(null)
   const [seconds, setSeconds] = useState(0)
   const [started, setStarted] = useState(false)
   const [flagMode, setFlagMode] = useState(false)
-  const [hoveringCell, setHoveringCell] = useState(false)
-  const [hint, setHint] = useState(null)
-  const [hintMessage, setHintMessage] = useState(EMPTY_HINT)
-  const [hintVisible, setHintVisible] = useState(true)
-  const [modal, setModal] = useState(null)
-  const [soundEnabled, setSoundEnabled] = useState(false)
-  const [stats, setStats] = useState({ played: 0, wins: 0, best: null })
+  const [flaggedCells, setFlaggedCells] = useState(() => new Set())
+  const [finishedRecord, setFinishedRecord] = useState(null)
+  const [history, setHistory] = useState(loadHistory)
+  const [cellSize, setCellSize] = useState(24)
+  const [fullscreen, setFullscreen] = useState(false)
+  const [fullscreenError, setFullscreenError] = useState('')
   const gameRef = useRef(null)
-  const botRef = useRef(null)
   const secondsRef = useRef(0)
-  const audioContextRef = useRef(null)
+  const clicksRef = useRef(0)
+  const flaggedCellsRef = useRef(new Set())
+  const finishedRef = useRef(false)
+  const boardAreaRef = useRef(null)
+  const longPressTimerRef = useRef(null)
+  const longPressHandledRef = useRef(false)
+  const suppressContextMenuUntilRef = useRef(0)
 
   useEffect(() => {
-    const game = Minefield.getInstance(config)
-    const bot = Bot.getInstance({
-      game,
-      process: Bot.PROCESS.UNIT,
-      speed: Bot.SPEED.NONE
-    })
+    const updateViewport = () => setViewport(getViewport())
+    window.addEventListener('resize', updateViewport)
+    window.visualViewport?.addEventListener('resize', updateViewport)
 
+    return () => {
+      window.removeEventListener('resize', updateViewport)
+      window.visualViewport?.removeEventListener('resize', updateViewport)
+    }
+  }, [])
+
+  useEffect(() => {
+    const updateFullscreen = () => setFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', updateFullscreen)
+
+    return () => document.removeEventListener('fullscreenchange', updateFullscreen)
+  }, [])
+
+  const sizeOption = SIZES.find(item => item.key === sizeKey)
+  const difficulty = DIFFICULTIES.find(item => item.key === difficultyKey)
+  const fullscreenSize = getFullscreenSize(viewport.width, viewport.height)
+  const rows = sizeKey === 'custom'
+    ? Number(customRows)
+    : sizeKey === 'fullscreen'
+      ? fullscreenSize.rows
+      : sizeOption.rows
+  const cols = sizeKey === 'custom'
+    ? Number(customCols)
+    : sizeKey === 'fullscreen'
+      ? fullscreenSize.cols
+      : sizeOption.cols
+  const validDimensions = Number.isInteger(rows) && rows >= 5 && rows <= MAX_DIMENSION &&
+    Number.isInteger(cols) && cols >= 5 && cols <= MAX_DIMENSION
+  const previewMines = validDimensions
+    ? getMineCount(rows, cols, difficulty.percent)
+    : 0
+  const canStart = validDimensions && previewMines < rows * cols
+  const wins = history.filter(record => record.result === 'win')
+  const bestTime = wins.reduce((best, record) => (
+    best === null || record.elapsedSeconds < best ? record.elapsedSeconds : best
+  ), null)
+
+  useEffect(() => {
+    if (screen !== 'game' || !config) return undefined
+
+    const game = Minefield.getInstance({ ...config, safeFirstClick: true })
     gameRef.current = game
-    botRef.current = bot
+
     game.addListener(Minefield.EVENTS.ALL, ({ event, state }) => {
       setGameState(snapshot(state))
 
-      if (event === Minefield.EVENTS.FINISH) {
-        const won = state.status === Minefield.STATUS.WIN
-        const elapsed = secondsRef.current
-
-        setStats(current => ({
-          played: current.played + 1,
-          wins: current.wins + (won ? 1 : 0),
-          best: won && (current.best === null || elapsed < current.best)
-            ? elapsed
-            : current.best
-        }))
-        setHint(null)
-        setHintMessage(won
-          ? 'Campo limpo! Você encontrou todas as casas seguras.'
-          : 'Fim de jogo. Reinicie para tentar novamente.')
+      if (event === Minefield.EVENTS.START) {
+        secondsRef.current = 0
+        clicksRef.current = 0
+        flaggedCellsRef.current = new Set()
+        finishedRef.current = false
+        setSeconds(0)
         setStarted(false)
+        setFlagMode(false)
+        setFlaggedCells(new Set())
+        setFinishedRecord(null)
+      }
+
+      if (event === Minefield.EVENTS.FINISH && !finishedRef.current) {
+        finishedRef.current = true
+        setStarted(false)
+        setFlagMode(false)
+
+        const flagged = Array.from(flaggedCellsRef.current)
+        const correctFlagCells = flagged.filter(key => {
+          const [row, col] = parseCellKey(key)
+          return state.board[row][col] === Minefield.CHECKERS.MINE
+        })
+        const wrongFlagCells = flagged.filter(key => !correctFlagCells.includes(key))
+        const exploded = state.lastUpdate.find(update => update.value === Minefield.CHECKERS.MINE)
+        const record = {
+          id: `${Date.now()}-${clicksRef.current}`,
+          result: state.status === Minefield.STATUS.WIN ? 'win' : 'loss',
+          completedAt: new Date().toISOString(),
+          rows: config.rows,
+          cols: config.cols,
+          mines: config.mines,
+          difficulty: config.difficulty,
+          elapsedSeconds: secondsRef.current,
+          clicks: clicksRef.current,
+          openedCells: state.checked,
+          correctFlags: correctFlagCells.length,
+          wrongFlags: wrongFlagCells.length,
+          correctFlagCells,
+          wrongFlagCells,
+          explodedCell: exploded ? { row: exploded.row, col: exploded.col } : null
+        }
+
+        setFinishedRecord(record)
+        setHistory(current => {
+          const updated = [record, ...current].slice(0, MAX_HISTORY)
+          saveHistory(updated)
+          return updated
+        })
       }
     })
 
-    secondsRef.current = 0
-    setSeconds(0)
-    setStarted(false)
-    setFlagMode(false)
-    setHint(null)
-    setHintMessage(EMPTY_HINT)
-    setHintVisible(true)
     game.start()
 
-    return () => bot.stop()
-  }, [config])
+    return () => {
+      if (gameRef.current === game) gameRef.current = null
+    }
+  }, [screen, config])
 
   useEffect(() => {
-    if (!started || gameState?.status !== Minefield.STATUS.PLAYING) {
+    if (screen !== 'game' || !started || gameState?.status !== Minefield.STATUS.PLAYING) {
       return undefined
     }
 
@@ -125,504 +258,437 @@ function App () {
     }, 1000)
 
     return () => window.clearInterval(timer)
-  }, [started, gameState?.status])
+  }, [screen, started, gameState?.status])
 
-  function chooseLevel (key) {
-    setLevel(key)
-    setConfig({ ...LEVELS[key] })
+  useEffect(() => {
+    if (screen !== 'game' || !gameState || !boardAreaRef.current) return undefined
+
+    const updateCellSize = () => {
+      const area = boardAreaRef.current
+      if (!area) return
+
+      const gap = 1
+      const availableWidth = area.clientWidth - 12 - (gameState.cols - 1) * gap
+      const availableHeight = area.clientHeight - 12 - (gameState.rows - 1) * gap
+      const fittedSize = Math.floor(Math.min(
+        availableWidth / gameState.cols,
+        availableHeight / gameState.rows,
+        48
+      ))
+      setCellSize(Math.max(10, fittedSize))
+    }
+
+    updateCellSize()
+    const observer = typeof window.ResizeObserver === 'undefined'
+      ? null
+      : new window.ResizeObserver(updateCellSize)
+    observer?.observe(boardAreaRef.current)
+    window.addEventListener('resize', updateCellSize)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', updateCellSize)
+    }
+  }, [screen, gameState?.rows, gameState?.cols])
+
+  function startGame () {
+    if (!canStart) {
+      setMenuError(`As dimensões precisam estar entre 5 e ${MAX_DIMENSION}.`)
+      return
+    }
+
+    setMenuError('')
+    setConfig({
+      rows,
+      cols,
+      mines: previewMines,
+      difficulty: difficulty.key,
+      difficultyPercent: difficulty.percent,
+      size: sizeKey
+    })
+    setGameState(null)
+    setScreen('game')
   }
 
-  function beginCustomGame (customConfig) {
-    setLevel('custom')
-    setConfig(customConfig)
-    setModal(null)
+  function performCellAction (row, col, action) {
+    if (!gameState || gameState.status !== Minefield.STATUS.PLAYING || !gameRef.current) {
+      return
+    }
+
+    clicksRef.current += 1
+    setStarted(true)
+
+    if (action === 'flag') {
+      const current = new Set(flaggedCellsRef.current)
+      const key = cellKey(row, col)
+      if (gameState.board[row][col] === Minefield.CHECKERS.FLAG) {
+        current.delete(key)
+      } else if (gameState.board[row][col] === Minefield.CHECKERS.EMPTY) {
+        current.add(key)
+      }
+      flaggedCellsRef.current = current
+      setFlaggedCells(current)
+      gameRef.current.flag(row, col)
+    } else if (action === 'chord') {
+      gameRef.current.chord(row, col)
+    } else {
+      gameRef.current.open(row, col)
+    }
   }
 
-  function restart () {
-    secondsRef.current = 0
-    setSeconds(0)
-    setStarted(false)
-    setHint(null)
-    setHintMessage(EMPTY_HINT)
+  function handleCellClick (row, col) {
+    if (longPressHandledRef.current) {
+      longPressHandledRef.current = false
+      return
+    }
+
+    const value = gameState.board[row][col]
+    if (flagMode) {
+      performCellAction(row, col, 'flag')
+    } else if (value >= Minefield.CHECKERS.NUMBER_1 &&
+      value <= Minefield.CHECKERS.NUMBER_8) {
+      performCellAction(row, col, 'chord')
+    } else {
+      performCellAction(row, col, 'open')
+    }
+  }
+
+  function handlePointerDown (event, row, col) {
+    if (event.pointerType !== 'touch') return
+
+    longPressHandledRef.current = false
+    window.clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressHandledRef.current = true
+      suppressContextMenuUntilRef.current = Date.now() + 1000
+      performCellAction(row, col, 'flag')
+    }, 500)
+  }
+
+  function clearLongPress () {
+    window.clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = null
+  }
+
+  function handleContextMenu (event, row, col) {
+    event.preventDefault()
+    if (Date.now() < suppressContextMenuUntilRef.current) return
+    performCellAction(row, col, 'flag')
+  }
+
+  function restartGame () {
     gameRef.current?.reset()
   }
 
-  function performCellAction (row, col, action = flagMode ? 'flag' : 'open') {
-    if (!gameState || gameState.status !== Minefield.STATUS.PLAYING) {
-      return
-    }
-
-    setStarted(true)
-    playTone(action === 'flag' ? 520 : 360)
-    gameRef.current[action](row, col)
+  function openMenu () {
+    clearLongPress()
+    setScreen('menu')
+    setFlagMode(false)
   }
 
-  function playTone (frequency) {
-    if (!soundEnabled || !window.AudioContext) {
-      return
+  async function toggleFullscreen () {
+    setFullscreenError('')
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      } else if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen()
+      } else {
+        throw new Error('Fullscreen API is not supported.')
+      }
+    } catch (error) {
+      console.error('Unable to toggle fullscreen mode.', error)
+      setFullscreenError('Tela inteira indisponível neste navegador.')
     }
-
-    const context = audioContextRef.current || new window.AudioContext()
-    audioContextRef.current = context
-
-    const oscillator = context.createOscillator()
-    const volume = context.createGain()
-    volume.gain.setValueAtTime(0.04, context.currentTime)
-    volume.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.12)
-    oscillator.frequency.value = frequency
-    oscillator.connect(volume)
-    volume.connect(context.destination)
-    oscillator.start()
-    oscillator.stop(context.currentTime + 0.12)
   }
 
-  function requestHint () {
-    const nextHint = botRef.current?.getHint() ?? null
-    setHint(nextHint)
-    setHintVisible(true)
-    playTone(680)
-
-    if (!nextHint) {
-      setHintMessage('Ainda não há uma jogada segura dedutível. Abra uma casa para começar.')
-      return
+  function getSizeDetails (item) {
+    if (item.key === 'custom') {
+      return `${customCols || 'x'} × ${customRows || 'y'}`
     }
-
-    const coordinate = `linha ${nextHint.row + 1}, coluna ${nextHint.col + 1}`
-    setHintMessage(nextHint.action === 'flag'
-      ? `A lógica deduziu uma mina na ${coordinate}.`
-      : `A lógica deduziu uma casa segura na ${coordinate}.`)
+    if (item.key === 'fullscreen') {
+      return `${fullscreenSize.cols} × ${fullscreenSize.rows}`
+    }
+    return `${item.cols} × ${item.rows}`
   }
 
-  function applyHint () {
-    if (!hint) {
-      return
-    }
-
-    performCellAction(hint.row, hint.col, hint.action)
-    setHint(null)
-    setHintMessage(EMPTY_HINT)
-  }
-
-  const flagsRemaining = gameState
-    ? Math.max(0, gameState.mines - countFlags(gameState))
-    : config.mines
-  const winRate = stats.played
-    ? Math.round((stats.wins / stats.played) * 100)
-    : 0
-  const isFinished = Boolean(gameState && gameState.status !== Minefield.STATUS.PLAYING)
-
-  return (
-    <div className='app-shell'>
-      <header className='topbar'>
-        <div className='topbar-inner'>
-          <a className='brand' href='#game' aria-label='Campo Minado Smart'>
-            <span className='brand-mark' aria-hidden='true'>✹</span>
-            <span className='brand-name'>
-              CAMPO MINADO
-              <small>SMART EDITION</small>
-            </span>
-          </a>
-
-          <nav className='level-nav' aria-label='Dificuldade'>
-            {Object.entries(LEVELS).map(([key, item]) => (
-              <button
-                className={level === key ? 'nav-level is-active' : 'nav-level'}
-                key={key}
-                onClick={() => chooseLevel(key)}
-                type='button'
-                aria-pressed={level === key}
-              >
-                {item.shortLabel}
-              </button>
-            ))}
-            <button
-              className={level === 'custom' ? 'nav-level is-active' : 'nav-level'}
-              onClick={() => setModal('custom')}
-              type='button'
-              aria-pressed={level === 'custom'}
-            >
-              Personalizado
-            </button>
-          </nav>
-
-          <div className='header-actions'>
-            <button
-              aria-label={soundEnabled ? 'Desativar som' : 'Ativar som'}
-              aria-pressed={soundEnabled}
-              className='icon-button'
-              onClick={() => setSoundEnabled(value => !value)}
-              title={soundEnabled ? 'Desativar som' : 'Ativar som'}
-              type='button'
-            >
-              {soundEnabled ? '♫' : '♪'}
-            </button>
-            <button
-              aria-label='Recordes da sessão'
-              className='icon-button'
-              onClick={() => setModal('stats')}
-              title='Recordes'
-              type='button'
-            >
-              ▥
-            </button>
-            <button
-              aria-label='Como jogar'
-              className='icon-button'
-              onClick={() => setModal('help')}
-              title='Como jogar'
-              type='button'
-            >
-              ?
-            </button>
+  if (screen === 'menu') {
+    return (
+      <main className='menu-screen'>
+        <section aria-labelledby='menu-title' className='menu-card'>
+          <div className='menu-brand'>
+            <MineLogo />
+            <div>
+              <h1 id='menu-title'>CAMPO<span>MINADO</span></h1>
+              <p>SMART EDITION</p>
+            </div>
           </div>
-        </div>
-      </header>
 
-      <main className='main-content' id='game'>
-        <section className='game-layout'>
-          <div className='mode-bar'>
-            <span className='mode-indicator' />
-            <strong>MODO CLÁSSICO LÓGICO</strong>
-            <span className='mode-separator'>•</span>
-            <span>Use as pistas para encontrar as casas seguras</span>
-            <div className='quick-levels' aria-label='Escolher dificuldade'>
-              {Object.entries(LEVELS).map(([key, item]) => (
+          <fieldset className='menu-section'>
+            <legend>TAMANHO</legend>
+            <div className='size-options'>
+              {SIZES.map(item => (
                 <button
-                  className={level === key ? 'quick-level is-active' : 'quick-level'}
-                  key={key}
-                  onClick={() => chooseLevel(key)}
+                  aria-pressed={sizeKey === item.key}
+                  className={sizeKey === item.key ? 'size-option is-selected' : 'size-option'}
+                  key={item.key}
+                  onClick={() => {
+                    setSizeKey(item.key)
+                    setMenuError('')
+                  }}
                   type='button'
                 >
-                  {item.description}
+                  <strong>{item.label}</strong>
+                  <small>{getSizeDetails(item)}</small>
                 </button>
               ))}
-              <button
-                className='quick-level custom-shortcut'
-                onClick={() => setModal('custom')}
-                type='button'
-              >
-                ⚙ Ajustar
-              </button>
             </div>
-          </div>
+          </fieldset>
 
-          {hintVisible && (
-            <section className='hint-card' aria-live='polite'>
-              <div className='hint-copy'>
-                <span className='hint-icon' aria-hidden='true'>✦</span>
-                <div>
-                  <div className='hint-heading'>
-                    <strong>ASSISTENTE DE LÓGICA</strong>
-                    <span className='safe-badge'>SEM CHUTES</span>
-                  </div>
-                  <p>{hintMessage}</p>
-                </div>
-              </div>
-              <div className='hint-actions'>
-                <button
-                  className='button button-safe'
-                  disabled={!hint}
-                  onClick={applyHint}
-                  type='button'
-                >
-                  {hint?.action === 'flag' ? 'Marcar bandeira' : 'Revelar célula'}
-                </button>
-                <button
-                  aria-label='Fechar dica'
-                  className='dismiss-button'
-                  onClick={() => setHintVisible(false)}
-                  type='button'
-                >
-                  ×
-                </button>
-              </div>
-            </section>
+          {sizeKey === 'custom' && (
+            <div className='custom-dimensions'>
+              <label>
+                Colunas (x)
+                <input
+                  max={MAX_DIMENSION}
+                  min='5'
+                  onChange={event => setCustomCols(event.target.value)}
+                  type='number'
+                  value={customCols}
+                />
+              </label>
+              <span aria-hidden='true'>×</span>
+              <label>
+                Linhas (y)
+                <input
+                  max={MAX_DIMENSION}
+                  min='5'
+                  onChange={event => setCustomRows(event.target.value)}
+                  type='number'
+                  value={customRows}
+                />
+              </label>
+            </div>
           )}
 
-          <section className='game-stage' aria-label='Campo minado'>
-            <div className='game-hud'>
-              <div className='counter-card'>
-                <span className='counter-icon flag-icon' aria-hidden='true'>⚑</span>
-                <span className='counter-label'>MINAS</span>
-                <strong className='counter-value mine-counter'>
-                  {String(flagsRemaining).padStart(3, '0')}
-                </strong>
-              </div>
-
-              <button
-                aria-label='Reiniciar jogo'
-                className='reset-button'
-                onClick={restart}
-                title='Reiniciar jogo'
-                type='button'
-              >
-                <span>{gameState?.status === Minefield.STATUS.WIN
-                  ? '😎'
-                  : gameState?.status === Minefield.STATUS.LOSS
-                    ? '😵'
-                    : hoveringCell
-                      ? '😮'
-                      : '🙂'}
-                </span>
-                <small>↻</small>
-              </button>
-
-              <div className='hud-tools'>
+          <fieldset className='menu-section difficulty-section'>
+            <legend>DIFICULDADE</legend>
+            <div className='difficulty-options'>
+              {DIFFICULTIES.map(item => (
                 <button
-                  aria-pressed={flagMode}
-                  className={flagMode ? 'button button-flag is-active' : 'button button-flag'}
-                  onClick={() => setFlagMode(value => !value)}
-                  title='Ativar modo bandeira'
+                  aria-pressed={difficultyKey === item.key}
+                  className={difficultyKey === item.key ? 'difficulty-option is-selected' : 'difficulty-option'}
+                  key={item.key}
+                  onClick={() => setDifficultyKey(item.key)}
                   type='button'
                 >
-                  ⚑ <span>Bandeira</span>
+                  <strong>{item.label}</strong>
+                  <small>{item.percent}%</small>
                 </button>
-                <button
-                  className='button button-hint'
-                  onClick={requestHint}
-                  type='button'
-                >
-                  ✦ <span>Dica IA</span>
-                </button>
-              </div>
-
-              <div className='counter-card timer-card'>
-                <span className='counter-label'>TEMPO</span>
-                <strong className='counter-value timer-value'>{formatTime(seconds)}</strong>
-                <span className='counter-icon' aria-hidden='true'>◷</span>
-              </div>
+              ))}
             </div>
+          </fieldset>
 
-            <div className='board-scroll'>
-              {gameState && (
-                <div
-                  aria-label={`Tabuleiro ${gameState.rows} por ${gameState.cols}`}
-                  className='board'
-                  data-columns={gameState.cols}
-                  role='grid'
-                  style={{ '--columns': gameState.cols }}
-                >
-                  {gameState.board.map((row, rowIndex) => row.map((value, colIndex) => {
-                    const isFlagged = value === Minefield.CHECKERS.FLAG
-                    const isMine = value === Minefield.CHECKERS.MINE
-                    const isOpen = value !== Minefield.CHECKERS.EMPTY && !isFlagged
-                    const isHint = hint?.row === rowIndex && hint?.col === colIndex
-                    const classes = ['cell']
+          <p aria-live='polite' className='mine-preview'>
+            <strong>{canStart ? previewMines : '—'}</strong>
+            {' minas em '}
+            <span>{canStart ? rows * cols : '—'}</span>
+            {' casas'}
+          </p>
+          {menuError && <p className='menu-error' role='alert'>{menuError}</p>}
 
-                    classes.push(isFlagged ? 'cell--flagged' : isOpen ? 'cell--open' : 'cell--hidden')
-                    if (isMine) classes.push('cell--mine')
-                    if (isOpen && value > 0) classes.push(`cell--number-${value}`)
-                    if (isHint) classes.push('cell--hint')
+          <button className='start-button' disabled={!canStart} onClick={startGame} type='button'>
+            <span aria-hidden='true'>▷</span>
+            NOVO JOGO
+          </button>
 
-                    const label = isFlagged
-                      ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira`
-                      : isMine
-                        ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, mina`
-                        : isOpen
-                          ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, ${value === 0 ? 'vazia' : value}`
-                          : `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, fechada`
-
-                    return (
-                      <button
-                        aria-label={label}
-                        aria-rowindex={rowIndex + 1}
-                        aria-colindex={colIndex + 1}
-                        className={classes.join(' ')}
-                        key={`${rowIndex}-${colIndex}`}
-                        onClick={() => performCellAction(rowIndex, colIndex)}
-                        onContextMenu={event => {
-                          event.preventDefault()
-                          performCellAction(rowIndex, colIndex, 'flag')
-                        }}
-                        onMouseEnter={() => setHoveringCell(true)}
-                        onMouseLeave={() => setHoveringCell(false)}
-                        role='gridcell'
-                        type='button'
-                      >
-                        {isFlagged ? '⚑' : isMine ? '✹' : value > 0 ? value : ''}
-                      </button>
-                    )
-                  }))}
-                </div>
-              )}
+          <section aria-label='Resumo das partidas' className='history-summary'>
+            <h2>RESUMO DAS PARTIDAS</h2>
+            <div className='summary-stats'>
+              <div><small>Partidas</small><strong>{history.length}</strong></div>
+              <div><small>Vitórias</small><strong>{wins.length}</strong></div>
+              <div><small>Melhor tempo</small><strong>{bestTime === null ? '--:--' : formatTime(bestTime)}</strong></div>
             </div>
-
-            <div className='game-help'>
-              <span><kbd>Click</kbd> Revelar</span>
-              <span className='help-divider'>·</span>
-              <span><kbd>Dir.</kbd> Marcar</span>
-              <span className='help-divider'>·</span>
-              <span><kbd>Modo ⚑</kbd> Marcar por toque</span>
-              <strong>◉ Lógica ativa</strong>
-            </div>
-            {isFinished && (
-              <p className={gameState?.status === Minefield.STATUS.WIN ? 'game-result is-win' : 'game-result'}>
-                {gameState?.status === Minefield.STATUS.WIN
-                  ? 'Parabéns! Você venceu.'
-                  : 'Fim de jogo. Tente novamente!'}
-              </p>
+            {history.length > 0 && (
+              <ul className='recent-games'>
+                {history.slice(0, 3).map(record => (
+                  <li key={record.id}>
+                    <span className={record.result === 'win' ? 'result-dot is-win' : 'result-dot'} />
+                    <span>{record.cols} × {record.rows}</span>
+                    <strong>{record.result === 'win' ? 'Vitória' : 'Derrota'}</strong>
+                    <time>{formatTime(record.elapsedSeconds)}</time>
+                  </li>
+                ))}
+              </ul>
             )}
-          </section>
-
-          <section className='info-cards' aria-label='Informações da partida'>
-            <article className='info-card'>
-              <div className='info-card-title'>
-                <span aria-hidden='true'>🏆</span>
-                <h2>Recordes da sessão</h2>
-                <span className='level-badge'>{level === 'custom' ? 'Personalizado' : LEVELS[level].label}</span>
-              </div>
-              <div className='stats-row'>
-                <div><span>Melhor</span><strong>{stats.best === null ? '--:--' : formatTime(stats.best)}</strong></div>
-                <div><span>Vitórias</span><strong className='text-green'>{stats.wins}</strong></div>
-                <div><span>Taxa</span><strong className='text-cyan'>{winRate}%</strong></div>
-              </div>
-              <p className='card-note'>Estatísticas desta sessão de jogo</p>
-            </article>
-
-            <article className='info-card certainty-card'>
-              <div className='info-card-title'>
-                <span aria-hidden='true'>⌁</span>
-                <h2>Índice de certeza</h2>
-                <strong className={hint ? 'text-green' : 'text-muted'}>{hint ? '100%' : '—'}</strong>
-              </div>
-              <p>{hint
-                ? `Próximo movimento deduzido: linha ${hint.row + 1}, coluna ${hint.col + 1}.`
-                : 'Peça uma dica para verificar se há uma jogada segura dedutível.'}
-              </p>
-              <div className='certainty-track'>
-                <span style={{ width: hint ? '100%' : '0%' }} />
-              </div>
-              <button className='text-link' onClick={requestHint} type='button'>
-                Verificar jogada segura <span aria-hidden='true'>→</span>
-              </button>
-            </article>
-
-            <article className='info-card custom-card'>
-              <div className='info-card-title'>
-                <span aria-hidden='true'>▦</span>
-                <h2>Personalização</h2>
-              </div>
-              <p>Crie um tabuleiro com dimensões e quantidade de minas próprias.</p>
-              <button className='button button-secondary custom-button' onClick={() => setModal('custom')} type='button'>
-                ▦ Criar campo próprio
-              </button>
-            </article>
           </section>
         </section>
       </main>
-
-      <footer className='footer'>
-        <span>Campo Minado Smart <span className='footer-dot'>•</span> Lógica sem suposições</span>
-        <nav aria-label='Links do rodapé'>
-          <a href='#game'>Jogo</a>
-          <button onClick={() => setModal('stats')} type='button'>Recordes</button>
-          <button onClick={() => setModal('help')} type='button'>Tutorial</button>
-        </nav>
-      </footer>
-
-      {modal === 'custom' && (
-        <CustomGameDialog
-          initialConfig={config}
-          onClose={() => setModal(null)}
-          onCreate={beginCustomGame}
-        />
-      )}
-      {modal === 'stats' && (
-        <InfoDialog title='Recordes da sessão' onClose={() => setModal(null)}>
-          <p>Partidas concluídas: <strong>{stats.played}</strong></p>
-          <p>Vitórias: <strong>{stats.wins}</strong></p>
-          <p>Taxa de vitória: <strong>{winRate}%</strong></p>
-          <p>Melhor tempo: <strong>{stats.best === null ? 'Ainda sem vitórias' : formatTime(stats.best)}</strong></p>
-        </InfoDialog>
-      )}
-      {modal === 'help' && (
-        <InfoDialog title='Como jogar' onClose={() => setModal(null)}>
-          <p>Revele as casas sem minas. Os números indicam quantas minas existem nas oito casas ao redor.</p>
-          <p>Use o botão Bandeira ou o clique direito para marcar uma mina. A dica só sugere jogadas deduzidas pelo tabuleiro.</p>
-          <p>Você vence ao revelar todas as casas seguras.</p>
-        </InfoDialog>
-      )}
-    </div>
-  )
-}
-
-function CustomGameDialog ({ initialConfig, onClose, onCreate }) {
-  const [rows, setRows] = useState(String(initialConfig.rows))
-  const [cols, setCols] = useState(String(initialConfig.cols))
-  const [mines, setMines] = useState(String(initialConfig.mines))
-  const [error, setError] = useState('')
-
-  function submit (event) {
-    event.preventDefault()
-    const boardRows = Number(rows)
-    const boardCols = Number(cols)
-    const mineCount = Number(mines)
-
-    if (!Number.isInteger(boardRows) || boardRows < 5 || boardRows > 30 ||
-      !Number.isInteger(boardCols) || boardCols < 5 || boardCols > 30) {
-      setError('Linhas e colunas devem estar entre 5 e 30.')
-      return
-    }
-
-    if (!Number.isInteger(mineCount) || mineCount < 1 || mineCount >= boardRows * boardCols) {
-      setError('Informe pelo menos uma mina e deixe ao menos uma casa segura.')
-      return
-    }
-
-    onCreate({
-      rows: boardRows,
-      cols: boardCols,
-      mines: mineCount
-    })
+    )
   }
 
-  return (
-    <div
-      className='modal-backdrop' onMouseDown={event => {
-        if (event.target === event.currentTarget) onClose()
-      }}
-    >
-      <section aria-labelledby='custom-title' aria-modal='true' className='dialog' role='dialog'>
-        <button aria-label='Fechar' className='dialog-close' onClick={onClose} type='button'>×</button>
-        <span className='dialog-kicker'>NOVO TABULEIRO</span>
-        <h2 id='custom-title'>Campo personalizado</h2>
-        <p>Escolha o tamanho do tabuleiro e a quantidade de minas.</p>
-        <form className='custom-form' onSubmit={submit}>
-          <label>
-            Linhas
-            <input max='30' min='5' onChange={event => setRows(event.target.value)} required type='number' value={rows} />
-          </label>
-          <label>
-            Colunas
-            <input max='30' min='5' onChange={event => setCols(event.target.value)} required type='number' value={cols} />
-          </label>
-          <label>
-            Minas
-            <input min='1' onChange={event => setMines(event.target.value)} required type='number' value={mines} />
-          </label>
-          {error && <p className='form-error' role='alert'>{error}</p>}
-          <button className='button button-primary' type='submit'>Começar partida</button>
-        </form>
-      </section>
-    </div>
-  )
-}
+  const flaggedCount = flaggedCells.size
+  const isFinished = Boolean(gameState && gameState.status !== Minefield.STATUS.PLAYING)
+  const face = gameState?.status === Minefield.STATUS.WIN
+    ? '😎'
+    : gameState?.status === Minefield.STATUS.LOSS
+      ? '😵'
+      : '🙂'
 
-function InfoDialog ({ children, onClose, title }) {
   return (
-    <div
-      className='modal-backdrop' onMouseDown={event => {
-        if (event.target === event.currentTarget) onClose()
-      }}
-    >
-      <section aria-labelledby='info-title' aria-modal='true' className='dialog' role='dialog'>
-        <button aria-label='Fechar' className='dialog-close' onClick={onClose} type='button'>×</button>
-        <span className='dialog-kicker'>CAMPO MINADO SMART</span>
-        <h2 id='info-title'>{title}</h2>
-        <div className='dialog-content'>{children}</div>
-        <button className='button button-primary' onClick={onClose} type='button'>Entendi</button>
+    <main className='game-screen'>
+      <header className='game-toolbar'>
+        <div className='toolbar-start'>
+          <button aria-label='Abrir menu' className='toolbar-button menu-button' onClick={openMenu} type='button'>
+            <span aria-hidden='true'>☰</span>
+          </button>
+          <div className='toolbar-brand'>
+            <span>CAMPO <strong>MINADO</strong></span>
+            <small>{config.cols}×{config.rows}</small>
+          </div>
+        </div>
+
+        <div className='toolbar-center'>
+          <div aria-label={`${config.mines - flaggedCount} minas restantes`} className='toolbar-counter'>
+            <span aria-hidden='true'>●</span>
+            <strong>{formatCounter(config.mines - flaggedCount)}</strong>
+          </div>
+          <button
+            aria-label='Reiniciar partida'
+            className='face-button'
+            onClick={restartGame}
+            title='Reiniciar'
+            type='button'
+          >
+            {face}
+          </button>
+          <time aria-label={`Tempo ${formatTime(seconds)}`} className='toolbar-timer'>
+            {formatTime(seconds)}
+          </time>
+        </div>
+
+        <div className='toolbar-actions'>
+          <button
+            aria-label={flagMode ? 'Desativar modo bandeira' : 'Ativar modo bandeira'}
+            aria-pressed={flagMode}
+            className={flagMode ? 'toolbar-button mobile-flag is-active' : 'toolbar-button mobile-flag'}
+            onClick={() => setFlagMode(value => !value)}
+            title='Modo bandeira'
+            type='button'
+          >
+            <span aria-hidden='true'>⚑</span>
+          </button>
+          <button
+            aria-label={fullscreen ? 'Sair da tela inteira' : 'Ativar tela inteira'}
+            className='toolbar-button fullscreen-button'
+            onClick={toggleFullscreen}
+            title={fullscreen ? 'Sair da tela inteira' : 'Tela inteira'}
+            type='button'
+          >
+            <span aria-hidden='true'>{fullscreen ? '⛶' : '⛶'}</span>
+          </button>
+        </div>
+      </header>
+
+      {fullscreenError && <p className='fullscreen-error' role='status'>{fullscreenError}</p>}
+
+      <section
+        aria-label={`Campo minado, ${config.cols} colunas por ${config.rows} linhas`}
+        className='board-area'
+        ref={boardAreaRef}
+      >
+        {gameState && (
+          <div
+            aria-label={`Tabuleiro ${gameState.rows} por ${gameState.cols}`}
+            className='board'
+            data-columns={gameState.cols}
+            role='grid'
+            style={{
+              '--columns': gameState.cols,
+              '--rows': gameState.rows,
+              '--cell-size': `${cellSize}px`
+            }}
+          >
+            {gameState.board.map((row, rowIndex) => row.map((value, colIndex) => {
+              const key = cellKey(rowIndex, colIndex)
+              const flagged = flaggedCells.has(key)
+              const mine = value === Minefield.CHECKERS.MINE
+              const open = typeof value === 'number' && value >= Minefield.CHECKERS.NUMBER_0
+              const wrongFlag = isFinished && flagged && !mine
+              const correctFlag = isFinished && flagged && mine
+              const visibleMine = isFinished && mine && !flagged
+              const exploded = finishedRecord?.explodedCell?.row === rowIndex &&
+                finishedRecord?.explodedCell?.col === colIndex
+              const classes = ['cell']
+
+              classes.push(open && !flagged ? 'cell--open' : 'cell--closed')
+              if (flagged) classes.push('cell--flagged')
+              if (correctFlag) classes.push('cell--correct-flag')
+              if (wrongFlag) classes.push('cell--wrong-flag')
+              if (visibleMine) classes.push('cell--mine')
+              if (exploded) classes.push('cell--exploded')
+              if (open && value > 0) classes.push(`cell--number-${value}`)
+
+              const label = wrongFlag
+                ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira errada`
+                : correctFlag
+                  ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira correta`
+                  : visibleMine
+                    ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, ${exploded ? 'mina que explodiu' : 'mina'}`
+                    : flagged
+                      ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira`
+                      : open
+                        ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, ${value === 0 ? 'vazia' : value}`
+                        : `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, fechada`
+
+              return (
+                <button
+                  aria-colindex={colIndex + 1}
+                  aria-label={label}
+                  aria-rowindex={rowIndex + 1}
+                  className={classes.join(' ')}
+                  disabled={isFinished}
+                  key={key}
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
+                  onContextMenu={event => handleContextMenu(event, rowIndex, colIndex)}
+                  onPointerCancel={clearLongPress}
+                  onPointerDown={event => handlePointerDown(event, rowIndex, colIndex)}
+                  onPointerLeave={clearLongPress}
+                  onPointerUp={clearLongPress}
+                  role='gridcell'
+                  type='button'
+                >
+                  {flagged
+                    ? <><span aria-hidden='true'>⚑</span>{wrongFlag && <span aria-hidden='true' className='wrong-mark'>×</span>}</>
+                    : visibleMine
+                      ? <span aria-hidden='true'>✹</span>
+                      : open && value > 0
+                        ? value
+                        : ''}
+                </button>
+              )
+            }))}
+          </div>
+        )}
+
+        {isFinished && finishedRecord && (
+          <aside aria-live='polite' className='result-banner'>
+            <div className='result-heading'>
+              <strong>{finishedRecord.result === 'win' ? 'CAMPO LIMPO' : 'FIM DE JOGO'}</strong>
+              <span>
+                {formatTime(finishedRecord.elapsedSeconds)} · {finishedRecord.clicks} cliques · {finishedRecord.openedCells} casas abertas
+              </span>
+            </div>
+            <div className='result-flags'>
+              <span className='correct-count'>⚑ {finishedRecord.correctFlags} certas</span>
+              <span className='wrong-count'>⚑ {finishedRecord.wrongFlags} erradas</span>
+            </div>
+            <button onClick={openMenu} type='button'>Novo jogo</button>
+          </aside>
+        )}
       </section>
-    </div>
+    </main>
   )
 }
 

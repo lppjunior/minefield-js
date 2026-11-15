@@ -5,7 +5,7 @@ class Board {
     this.options = options
   }
 
-  make () {
+  make (excludedCell) {
     if (this.options.mock) {
       this.data = JSON.parse(this.options.mock)
       this.options.rows = this.data.length
@@ -13,7 +13,7 @@ class Board {
       this.options.mines = (this.options.mock.match(/-1/g)).length
     } else {
       this.makeBoard()
-      this.makeMines()
+      this.makeMines(excludedCell)
     }
 
     return this.data
@@ -28,12 +28,18 @@ class Board {
       )
   }
 
-  makeMines () {
+  makeMines (excludedCell) {
     let count = 0
     let mines = ''
 
     do {
       const mine = this.getRandomMap()
+      if (excludedCell &&
+        mine[0] === excludedCell.row &&
+        mine[1] === excludedCell.col) {
+        continue
+      }
+
       const _mine = `${mine.join(',')}|`
 
       if (mines.indexOf(_mine) === -1) {
@@ -68,6 +74,6 @@ class Board {
   }
 }
 
-Board.make = (options) => ((new Board(options)).make())
+Board.make = (options, excludedCell) => ((new Board(options)).make(excludedCell))
 
 export default Board

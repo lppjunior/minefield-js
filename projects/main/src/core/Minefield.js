@@ -63,7 +63,7 @@ class Minefield {
     if (this.state.get('lastUpdate').length === 0) return
 
     this.state.set('status',
-      this.state.get('lastUpdate')[0].value === CHECKERS.MINE
+      this.state.get('lastUpdate').some(update => update.value === CHECKERS.MINE)
         ? STATUS.LOSS
         : this.state.get('checked') === this.state.get('total')
           ? STATUS.WIN
