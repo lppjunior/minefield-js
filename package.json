@@ -17,10 +17,14 @@
     "type": "git",
     "url": "git+https://github.com/lppjunior/minefield-js.git"
   },
+  "devDependencies": {
+    "@babel/core": "^7.29.13",
+    "@babel/preset-env": "^7.29.14"
+  },
   "author": "Luiz Paulo <luizpaulo@gmail.com>",
   "license": "MIT License",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=26.0.0",
     "npm": ">=8.0.0"
   }
 }
