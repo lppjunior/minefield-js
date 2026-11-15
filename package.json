@@ -24,7 +24,7 @@
   "author": "Luiz Paulo <luizpaulo@gmail.com>",
   "license": "MIT License",
   "engines": {
-    "node": ">=26.0.0",
+    "node": "26.x",
     "npm": ">=8.0.0"
   }
 }
