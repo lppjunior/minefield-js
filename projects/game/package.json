@@ -6,7 +6,8 @@
   "scripts": {
     "start": "vite --config vite.config.mjs",
     "build": "vite build --config vite.config.mjs",
-    "lint": "standard src"
+    "test": "node --test tests/gtm.test.mjs",
+    "lint": "standard src tests/gtm.test.mjs vite.config.mjs"
   },
   "dependencies": {
     "@minefield/bot": "1.1.0",

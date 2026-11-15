@@ -10,7 +10,7 @@
   "scripts": {
     "start": "npm run start --workspace @minefield/game",
     "build": "npm run build --workspace @minefield/game",
-    "test": "npm run test --workspace @minefield/main && npm run test --workspace @minefield/bot",
+    "test": "npm run test --workspace @minefield/main && npm run test --workspace @minefield/bot && npm run test --workspace @minefield/game",
     "lint": "npm run lint --workspaces --if-present"
   },
   "repository": {

@@ -19,6 +19,14 @@ npm start
 
 O servidor de desenvolvimento abre em `http://localhost:9000`.
 
+## Google Tag Manager
+
+Copie `projects/game/.env.example` para `projects/game/.env` para ativar o GTM
+localmente. No provedor de deploy, configure `VITE_GTM_ID=GTM-KMTQTFL` antes
+do build para cada ambiente desejado. O identificador é público e é incluído
+no HTML. Sem a variável, o jogo funciona, mas o GTM fica desativado e o build
+exibe um aviso.
+
 ## Comandos
 
 ```shell
