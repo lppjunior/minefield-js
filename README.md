@@ -29,6 +29,15 @@ npm run build  # build de produção em dist/
 
 O workspace da interface usa Vite para desenvolvimento e build.
 
+## Deploy na Vercel
+
+Em **Settings > Build and Deployment**, selecione Node.js 26.x para alinhar a
+configuração da Vercel com a versão exigida pelo projeto. Se o npm avisar
+`Unknown env config "cache-dir"`, verifique se alguma variável de ambiente
+`npm_config_cache_dir` foi configurada no projeto; o npm utiliza
+`npm_config_cache` para configurar o cache. Caso a variável venha do ambiente
+da Vercel, verifique a configuração com o suporte da plataforma.
+
 ## Workspaces
 
 - `projects/main`: motor do jogo, geração do tabuleiro e API baseada em eventos.
