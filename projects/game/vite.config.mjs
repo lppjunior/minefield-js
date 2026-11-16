@@ -5,9 +5,10 @@ import { defineConfig, loadEnv } from 'vite'
 
 const projectRoot = dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const gtmId = loadEnv(mode, projectRoot, 'VITE_').VITE_GTM_ID?.trim()
   if (gtmId && !/^GTM-[A-Z0-9]+$/.test(gtmId)) throw new Error('VITE_GTM_ID inválido.')
+  if (!gtmId && command === 'build') throw new Error('VITE_GTM_ID é obrigatório para o build. Configure a variável antes de continuar.')
   if (!gtmId) console.warn('VITE_GTM_ID não configurado; Google Tag Manager desativado.')
 
   const gtm = {

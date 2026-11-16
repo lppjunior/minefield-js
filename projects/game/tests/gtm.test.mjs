@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { runInNewContext } from 'node:vm'
-import { build } from 'vite'
+import { build, resolveConfig } from 'vite'
 
 const configFile = fileURLToPath(new URL('../vite.config.mjs', import.meta.url))
 
@@ -36,16 +36,27 @@ test('builds the GTM script and noscript fallback with the configured ID', async
   assert.equal(window.dataLayer[0].event, 'gtm.js')
 })
 
-test('omits GTM and warns if the ID is absent', async () => {
+test('rejects builds when the ID is empty or whitespace', async () => {
+  for (const id of ['', '   ']) {
+    await assert.rejects(buildWithId(id), /VITE_GTM_ID é obrigatório para o build/)
+  }
+})
+
+test('warns and omits GTM in development if the ID is absent', async () => {
   const warnings = []
   const warn = console.warn
+  const previous = process.env.VITE_GTM_ID
+  process.env.VITE_GTM_ID = ''
   console.warn = message => warnings.push(message)
   try {
-    const html = await buildWithId('')
-    assert.doesNotMatch(html, /googletagmanager\.com/)
+    const config = await resolveConfig({ configFile, logLevel: 'silent' }, 'serve')
+    const plugin = config.plugins.find(plugin => plugin.name === 'google-tag-manager')
+    assert.deepEqual(plugin.transformIndexHtml(), [])
     assert.ok(warnings.some(message => message.includes('VITE_GTM_ID não configurado')))
   } finally {
     console.warn = warn
+    if (previous === undefined) delete process.env.VITE_GTM_ID
+    else process.env.VITE_GTM_ID = previous
   }
 })
 

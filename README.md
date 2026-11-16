@@ -24,8 +24,9 @@ O servidor de desenvolvimento abre em `http://localhost:9000`.
 Copie `projects/game/.env.example` para `projects/game/.env` para ativar o GTM
 localmente. No provedor de deploy, configure `VITE_GTM_ID=GTM-KMTQTFL` antes
 do build para cada ambiente desejado. O identificador é público e é incluído
-no HTML. Sem a variável, o jogo funciona, mas o GTM fica desativado e o build
-exibe um aviso.
+no HTML. O build exige um identificador válido e falha caso ele esteja ausente
+ou inválido. No servidor de desenvolvimento, a variável é opcional: sem ela,
+o GTM fica desativado e um aviso é exibido.
 
 ## Comandos
 
