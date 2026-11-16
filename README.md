@@ -56,6 +56,8 @@ da Vercel, verifique a configuração com o suporte da plataforma.
 ## Regras e controles
 
 - Escolha o tamanho do tabuleiro e a dificuldade antes de iniciar.
+- A opção **Tela inteira** solicita o modo fullscreen ao iniciar e ajusta o
+  tabuleiro à tela. Se o navegador não permitir, a partida continua na janela.
 - Clique/toque abre uma casa; clique direito ou toque prolongado marca uma bandeira.
 - O botão de bandeira da barra superior também funciona em telas touch.
 - Abrir um número com as bandeiras corretas ao redor revela as casas vizinhas.

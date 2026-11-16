@@ -56,13 +56,34 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
+.app-shell {
+  display: flex;
+  height: 100dvh;
+  flex-direction: column;
+}
+
 .menu-screen {
   display: grid;
   width: 100%;
-  min-height: 100dvh;
-  place-items: center;
+  min-height: 0;
+  flex: 1;
+  place-items: safe center;
   overflow: auto;
   padding: 22px 14px;
+}
+
+.app-footer {
+  display: grid;
+  min-height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 3px 8px;
+  background: #07121e;
+  color: #a7bece;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  text-align: center;
+  pointer-events: none;
 }
 
 .menu-card {
@@ -388,11 +409,10 @@ input:focus-visible {
 }
 
 .game-screen {
-  position: fixed;
-  inset: 0;
   display: flex;
   min-width: 320px;
   min-height: 0;
+  flex: 1;
   flex-direction: column;
   overflow: hidden;
   background:

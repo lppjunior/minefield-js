@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Minefield } from '@minefield/main'
+import { getFullscreenSize, MAX_DIMENSION } from './fullscreen.mjs'
 
 const HISTORY_KEY = 'minefield.results.v1'
 const MAX_HISTORY = 50
-const MAX_DIMENSION = 60
-const FULLSCREEN_CELL_SIZE = 28
 
 const SIZES = [
   { key: 'small', label: 'Pequeno', rows: 9, cols: 9 },
@@ -23,13 +22,6 @@ const DIFFICULTIES = [
 
 function clamp (value, min, max) {
   return Math.min(max, Math.max(min, value))
-}
-
-function getFullscreenSize (width = window.innerWidth, height = window.innerHeight) {
-  return {
-    cols: clamp(Math.floor(width / FULLSCREEN_CELL_SIZE), 5, MAX_DIMENSION),
-    rows: clamp(Math.floor((height - 48) / FULLSCREEN_CELL_SIZE), 5, MAX_DIMENSION)
-  }
 }
 
 function getViewport () {
@@ -129,6 +121,7 @@ function App () {
   const [fullscreen, setFullscreen] = useState(false)
   const [fullscreenError, setFullscreenError] = useState('')
   const gameRef = useRef(null)
+  const startingRef = useRef(false)
   const secondsRef = useRef(0)
   const clicksRef = useRef(0)
   const flaggedCellsRef = useRef(new Set())
@@ -248,6 +241,19 @@ function App () {
   }, [screen, config])
 
   useEffect(() => {
+    if (screen !== 'game' || config?.size !== 'fullscreen' || !gameState || clicksRef.current > 0) return
+
+    const size = getFullscreenSize(window.innerWidth, window.innerHeight)
+    if (size.rows !== config.rows || size.cols !== config.cols) {
+      setConfig(current => ({
+        ...current,
+        ...size,
+        mines: getMineCount(size.rows, size.cols, current.difficultyPercent)
+      }))
+    }
+  }, [screen, config, gameState, viewport])
+
+  useEffect(() => {
     if (screen !== 'game' || !started || gameState?.status !== Minefield.STATUS.PLAYING) {
       return undefined
     }
@@ -273,7 +279,7 @@ function App () {
       const fittedSize = Math.floor(Math.min(
         availableWidth / gameState.cols,
         availableHeight / gameState.rows,
-        48
+        config.size === 'fullscreen' ? Infinity : 48
       ))
       setCellSize(Math.max(10, fittedSize))
     }
@@ -289,25 +295,43 @@ function App () {
       observer?.disconnect()
       window.removeEventListener('resize', updateCellSize)
     }
-  }, [screen, gameState?.rows, gameState?.cols])
+  }, [screen, config, gameState?.rows, gameState?.cols])
 
-  function startGame () {
+  async function startGame () {
+    if (startingRef.current) return
     if (!canStart) {
       setMenuError(`As dimensões precisam estar entre 5 e ${MAX_DIMENSION}.`)
       return
     }
 
+    startingRef.current = true
     setMenuError('')
+    setFullscreenError('')
+    let gameRows = rows
+    let gameCols = cols
+    if (sizeKey === 'fullscreen') {
+      try {
+        await enterFullscreen()
+      } catch (error) {
+        console.error('Unable to activate fullscreen mode.', error)
+        setFullscreenError('Tela inteira indisponível neste navegador.')
+      }
+      const size = getFullscreenSize(window.innerWidth, window.innerHeight)
+      gameRows = size.rows
+      gameCols = size.cols
+    }
+
     setConfig({
-      rows,
-      cols,
-      mines: previewMines,
+      rows: gameRows,
+      cols: gameCols,
+      mines: getMineCount(gameRows, gameCols, difficulty.percent),
       difficulty: difficulty.key,
       difficultyPercent: difficulty.percent,
       size: sizeKey
     })
     setGameState(null)
     setScreen('game')
+    startingRef.current = false
   }
 
   function performCellAction (row, col, action) {
@@ -386,16 +410,22 @@ function App () {
     setFlagMode(false)
   }
 
+  async function enterFullscreen () {
+    if (document.fullscreenElement) return
+    if (!document.documentElement.requestFullscreen) {
+      throw new Error('Fullscreen API is not supported.')
+    }
+    await document.documentElement.requestFullscreen()
+  }
+
   async function toggleFullscreen () {
     setFullscreenError('')
 
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen()
-      } else if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen()
       } else {
-        throw new Error('Fullscreen API is not supported.')
+        await enterFullscreen()
       }
     } catch (error) {
       console.error('Unable to toggle fullscreen mode.', error)
@@ -692,4 +722,11 @@ function App () {
   )
 }
 
-export default App
+export default function AppWithFooter () {
+  return (
+    <div className='app-shell'>
+      <App />
+      <footer className='app-footer'>lppjunior.com · Campo Minado</footer>
+    </div>
+  )
+}
