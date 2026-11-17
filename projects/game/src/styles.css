@@ -73,10 +73,14 @@ input:focus-visible {
 }
 
 .app-footer {
-  display: grid;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  white-space: nowrap;
   min-height: 22px;
   flex: 0 0 auto;
-  place-items: center;
   padding: 3px 8px;
   background: #07121e;
   color: #a7bece;
@@ -98,8 +102,21 @@ input:focus-visible {
 .menu-brand {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin: 0 2px 23px;
+}
+
+.language-switcher {
+  min-height: 32px;
+  margin-left: auto;
+  padding: 0 8px;
+  border: 1px solid #3a4a63;
+  border-radius: 6px;
+  background: #0f1d33;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 13px;
 }
 
 .mine-logo {
@@ -557,6 +574,7 @@ input:focus-visible {
 }
 
 .board {
+  direction: ltr;
   display: grid;
   width: max-content;
   height: max-content;

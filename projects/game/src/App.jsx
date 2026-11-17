@@ -1,23 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Minefield } from '@minefield/main'
 import { getFullscreenSize, MAX_DIMENSION } from './fullscreen.mjs'
+import {
+  LANGUAGES,
+  LANGUAGE_NAMES,
+  HTML_LANG,
+  LANGUAGE_PATHS,
+  RTL_LANGUAGES,
+  MESSAGES,
+  languageFromPath,
+  storeLanguage
+} from './i18n.mjs'
 
 const HISTORY_KEY = 'minefield.results.v1'
 const MAX_HISTORY = 50
 
 const SIZES = [
-  { key: 'small', label: 'Pequeno', rows: 9, cols: 9 },
-  { key: 'medium', label: 'Médio', rows: 16, cols: 16 },
-  { key: 'large', label: 'Grande', rows: 16, cols: 30 },
-  { key: 'fullscreen', label: 'Tela inteira' },
-  { key: 'custom', label: 'Personalizado' }
+  { key: 'small', rows: 9, cols: 9 },
+  { key: 'medium', rows: 16, cols: 16 },
+  { key: 'large', rows: 16, cols: 30 },
+  { key: 'fullscreen' },
+  { key: 'custom' }
 ]
 
 const DIFFICULTIES = [
-  { key: 'easy', label: 'Fácil', percent: 10 },
-  { key: 'normal', label: 'Normal', percent: 15 },
-  { key: 'hard', label: 'Difícil', percent: 20 },
-  { key: 'insane', label: 'Insano', percent: 25 }
+  { key: 'easy', percent: 10 },
+  { key: 'normal', percent: 15 },
+  { key: 'hard', percent: 20 },
+  { key: 'insane', percent: 25 }
 ]
 
 function clamp (value, min, max) {
@@ -101,7 +111,24 @@ function MineLogo () {
   )
 }
 
-function App () {
+function LanguageSwitcher ({ lang, onChange, t }) {
+  return (
+    <select
+      aria-label={t.language}
+      className='language-switcher'
+      onChange={event => onChange(event.target.value)}
+      value={lang}
+    >
+      {LANGUAGES.map(code => (
+        <option key={code} lang={code} value={code}>
+          {LANGUAGE_NAMES[code]}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+function App ({ lang, onLanguageChange, t }) {
   const [screen, setScreen] = useState('menu')
   const [sizeKey, setSizeKey] = useState('medium')
   const [difficultyKey, setDifficultyKey] = useState('normal')
@@ -300,7 +327,7 @@ function App () {
   async function startGame () {
     if (startingRef.current) return
     if (!canStart) {
-      setMenuError(`As dimensões precisam estar entre 5 e ${MAX_DIMENSION}.`)
+      setMenuError(t.dimensionsError(MAX_DIMENSION))
       return
     }
 
@@ -314,7 +341,7 @@ function App () {
         await enterFullscreen()
       } catch (error) {
         console.error('Unable to activate fullscreen mode.', error)
-        setFullscreenError('Tela inteira indisponível neste navegador.')
+        setFullscreenError(t.fullscreenUnavailable)
       }
       const size = getFullscreenSize(window.innerWidth, window.innerHeight)
       gameRows = size.rows
@@ -429,7 +456,7 @@ function App () {
       }
     } catch (error) {
       console.error('Unable to toggle fullscreen mode.', error)
-      setFullscreenError('Tela inteira indisponível neste navegador.')
+      setFullscreenError(t.fullscreenUnavailable)
     }
   }
 
@@ -450,13 +477,14 @@ function App () {
           <div className='menu-brand'>
             <MineLogo />
             <div>
-              <h1 id='menu-title'>CAMPO<span>MINADO</span></h1>
+              <h1 id='menu-title'>{t.titleTop}<span>{t.titleBottom}</span></h1>
               <p>SMART EDITION</p>
             </div>
+            <LanguageSwitcher lang={lang} onChange={onLanguageChange} t={t} />
           </div>
 
           <fieldset className='menu-section'>
-            <legend>TAMANHO</legend>
+            <legend>{t.sizeLegend}</legend>
             <div className='size-options'>
               {SIZES.map(item => (
                 <button
@@ -469,7 +497,7 @@ function App () {
                   }}
                   type='button'
                 >
-                  <strong>{item.label}</strong>
+                  <strong>{t.sizes[item.key]}</strong>
                   <small>{getSizeDetails(item)}</small>
                 </button>
               ))}
@@ -479,7 +507,7 @@ function App () {
           {sizeKey === 'custom' && (
             <div className='custom-dimensions'>
               <label>
-                Colunas (x)
+                {t.columns}
                 <input
                   max={MAX_DIMENSION}
                   min='5'
@@ -490,7 +518,7 @@ function App () {
               </label>
               <span aria-hidden='true'>×</span>
               <label>
-                Linhas (y)
+                {t.rows}
                 <input
                   max={MAX_DIMENSION}
                   min='5'
@@ -503,7 +531,7 @@ function App () {
           )}
 
           <fieldset className='menu-section difficulty-section'>
-            <legend>DIFICULDADE</legend>
+            <legend>{t.difficultyLegend}</legend>
             <div className='difficulty-options'>
               {DIFFICULTIES.map(item => (
                 <button
@@ -513,7 +541,7 @@ function App () {
                   onClick={() => setDifficultyKey(item.key)}
                   type='button'
                 >
-                  <strong>{item.label}</strong>
+                  <strong>{t.difficulties[item.key]}</strong>
                   <small>{item.percent}%</small>
                 </button>
               ))}
@@ -522,23 +550,23 @@ function App () {
 
           <p aria-live='polite' className='mine-preview'>
             <strong>{canStart ? previewMines : '—'}</strong>
-            {' minas em '}
+            {t.minesIn}
             <span>{canStart ? rows * cols : '—'}</span>
-            {' casas'}
+            {t.cells}
           </p>
           {menuError && <p className='menu-error' role='alert'>{menuError}</p>}
 
           <button className='start-button' disabled={!canStart} onClick={startGame} type='button'>
             <span aria-hidden='true'>▷</span>
-            NOVO JOGO
+            {t.newGameUpper}
           </button>
 
-          <section aria-label='Resumo das partidas' className='history-summary'>
-            <h2>RESUMO DAS PARTIDAS</h2>
+          <section aria-label={t.summaryLabel} className='history-summary'>
+            <h2>{t.summaryTitle}</h2>
             <div className='summary-stats'>
-              <div><small>Partidas</small><strong>{history.length}</strong></div>
-              <div><small>Vitórias</small><strong>{wins.length}</strong></div>
-              <div><small>Melhor tempo</small><strong>{bestTime === null ? '--:--' : formatTime(bestTime)}</strong></div>
+              <div><small>{t.games}</small><strong>{history.length}</strong></div>
+              <div><small>{t.wins}</small><strong>{wins.length}</strong></div>
+              <div><small>{t.bestTime}</small><strong>{bestTime === null ? '--:--' : formatTime(bestTime)}</strong></div>
             </div>
             {history.length > 0 && (
               <ul className='recent-games'>
@@ -546,7 +574,7 @@ function App () {
                   <li key={record.id}>
                     <span className={record.result === 'win' ? 'result-dot is-win' : 'result-dot'} />
                     <span>{record.cols} × {record.rows}</span>
-                    <strong>{record.result === 'win' ? 'Vitória' : 'Derrota'}</strong>
+                    <strong>{record.result === 'win' ? t.win : t.loss}</strong>
                     <time>{formatTime(record.elapsedSeconds)}</time>
                   </li>
                 ))}
@@ -570,67 +598,68 @@ function App () {
     <main className='game-screen'>
       <header className='game-toolbar'>
         <div className='toolbar-start'>
-          <button aria-label='Abrir menu' className='toolbar-button menu-button' onClick={openMenu} type='button'>
+          <button aria-label={t.openMenu} className='toolbar-button menu-button' onClick={openMenu} type='button'>
             <span aria-hidden='true'>☰</span>
           </button>
           <div className='toolbar-brand'>
-            <span>CAMPO <strong>MINADO</strong></span>
+            <span>{t.titleTop} <strong>{t.titleBottom}</strong></span>
             <small>{config.cols}×{config.rows}</small>
           </div>
         </div>
 
         <div className='toolbar-center'>
-          <div aria-label={`${config.mines - flaggedCount} minas restantes`} className='toolbar-counter'>
+          <div aria-label={t.minesLeft(config.mines - flaggedCount)} className='toolbar-counter'>
             <span aria-hidden='true'>●</span>
             <strong>{formatCounter(config.mines - flaggedCount)}</strong>
           </div>
           <button
-            aria-label='Reiniciar partida'
+            aria-label={t.restart}
             className='face-button'
             onClick={restartGame}
-            title='Reiniciar'
+            title={t.restartTitle}
             type='button'
           >
             {face}
           </button>
-          <time aria-label={`Tempo ${formatTime(seconds)}`} className='toolbar-timer'>
+          <time aria-label={t.time(formatTime(seconds))} className='toolbar-timer'>
             {formatTime(seconds)}
           </time>
         </div>
 
         <div className='toolbar-actions'>
           <button
-            aria-label={flagMode ? 'Desativar modo bandeira' : 'Ativar modo bandeira'}
+            aria-label={flagMode ? t.flagModeOff : t.flagModeOn}
             aria-pressed={flagMode}
             className={flagMode ? 'toolbar-button mobile-flag is-active' : 'toolbar-button mobile-flag'}
             onClick={() => setFlagMode(value => !value)}
-            title='Modo bandeira'
+            title={t.flagModeTitle}
             type='button'
           >
             <span aria-hidden='true'>⚑</span>
           </button>
           <button
-            aria-label={fullscreen ? 'Sair da tela inteira' : 'Ativar tela inteira'}
+            aria-label={fullscreen ? t.exitFullscreen : t.enterFullscreen}
             className='toolbar-button fullscreen-button'
             onClick={toggleFullscreen}
-            title={fullscreen ? 'Sair da tela inteira' : 'Tela inteira'}
+            title={fullscreen ? t.exitFullscreen : t.fullscreenTitle}
             type='button'
           >
             <span aria-hidden='true'>{fullscreen ? '⛶' : '⛶'}</span>
           </button>
+          <LanguageSwitcher lang={lang} onChange={onLanguageChange} t={t} />
         </div>
       </header>
 
       {fullscreenError && <p className='fullscreen-error' role='status'>{fullscreenError}</p>}
 
       <section
-        aria-label={`Campo minado, ${config.cols} colunas por ${config.rows} linhas`}
+        aria-label={t.fieldLabel(config.cols, config.rows)}
         className='board-area'
         ref={boardAreaRef}
       >
         {gameState && (
           <div
-            aria-label={`Tabuleiro ${gameState.rows} por ${gameState.cols}`}
+            aria-label={t.boardLabel(gameState.rows, gameState.cols)}
             className='board'
             data-columns={gameState.cols}
             role='grid'
@@ -660,17 +689,18 @@ function App () {
               if (exploded) classes.push('cell--exploded')
               if (open && value > 0) classes.push(`cell--number-${value}`)
 
-              const label = wrongFlag
-                ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira errada`
+              const cellState = wrongFlag
+                ? 'wrongFlag'
                 : correctFlag
-                  ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira correta`
+                  ? 'correctFlag'
                   : visibleMine
-                    ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, ${exploded ? 'mina que explodiu' : 'mina'}`
+                    ? (exploded ? 'explodedMine' : 'mine')
                     : flagged
-                      ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, bandeira`
+                      ? 'flag'
                       : open
-                        ? `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, ${value === 0 ? 'vazia' : value}`
-                        : `Linha ${rowIndex + 1}, coluna ${colIndex + 1}, fechada`
+                        ? (value === 0 ? 'empty' : value)
+                        : 'closed'
+              const label = t.cell(rowIndex + 1, colIndex + 1, cellState)
 
               return (
                 <button
@@ -705,16 +735,16 @@ function App () {
         {isFinished && finishedRecord && (
           <aside aria-live='polite' className='result-banner'>
             <div className='result-heading'>
-              <strong>{finishedRecord.result === 'win' ? 'CAMPO LIMPO' : 'FIM DE JOGO'}</strong>
+              <strong>              {finishedRecord.result === 'win' ? t.clearTitle : t.gameOver}</strong>
               <span>
-                {formatTime(finishedRecord.elapsedSeconds)} · {finishedRecord.clicks} cliques · {finishedRecord.openedCells} casas abertas
+                {formatTime(finishedRecord.elapsedSeconds)} · {finishedRecord.clicks} {t.clicks} · {finishedRecord.openedCells} {t.openedCells}
               </span>
             </div>
             <div className='result-flags'>
-              <span className='correct-count'>⚑ {finishedRecord.correctFlags} certas</span>
-              <span className='wrong-count'>⚑ {finishedRecord.wrongFlags} erradas</span>
+              <span className='correct-count'>⚑ {finishedRecord.correctFlags} {t.correctFlags}</span>
+              <span className='wrong-count'>⚑ {finishedRecord.wrongFlags} {t.wrongFlags}</span>
             </div>
-            <button onClick={openMenu} type='button'>Novo jogo</button>
+            <button onClick={openMenu} type='button'>{t.newGame}</button>
           </aside>
         )}
       </section>
@@ -723,10 +753,33 @@ function App () {
 }
 
 export default function AppWithFooter () {
+  const [lang, setLang] = useState(() => languageFromPath(window.location.pathname))
+  const t = MESSAGES[lang]
+
+  useEffect(() => {
+    document.documentElement.lang = HTML_LANG[lang]
+    document.documentElement.dir = RTL_LANGUAGES.includes(lang) ? 'rtl' : 'ltr'
+    document.title = t.title
+  }, [lang, t])
+
+  useEffect(() => {
+    const syncLanguage = () => setLang(languageFromPath(window.location.pathname))
+    window.addEventListener('popstate', syncLanguage)
+
+    return () => window.removeEventListener('popstate', syncLanguage)
+  }, [])
+
+  function changeLanguage (next) {
+    if (next === lang) return
+    storeLanguage(window.localStorage, next)
+    window.history.pushState(null, '', LANGUAGE_PATHS[next])
+    setLang(next)
+  }
+
   return (
     <div className='app-shell'>
-      <App />
-      <footer className='app-footer'><a href='https://lppjunior.com/'>lppjunior.com</a> · Campo Minado</footer>
+      <App lang={lang} onLanguageChange={changeLanguage} t={t} />
+      <footer className='app-footer'><a href='https://lppjunior.com/'>lppjunior.com</a> · {t.gameName}</footer>
     </div>
   )
 }
