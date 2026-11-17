@@ -824,3 +824,10 @@ input:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+.app-footer a {
+  display: inline-block;
+  padding: 4px 2px;
+  color: inherit;
+  pointer-events: auto;
+}

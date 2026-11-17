@@ -726,7 +726,7 @@ export default function AppWithFooter () {
   return (
     <div className='app-shell'>
       <App />
-      <footer className='app-footer'>lppjunior.com · Campo Minado</footer>
+      <footer className='app-footer'><a href='https://lppjunior.com/'>lppjunior.com</a> · Campo Minado</footer>
     </div>
   )
 }
