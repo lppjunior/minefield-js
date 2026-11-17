@@ -203,7 +203,7 @@ input:focus-visible {
 
 .size-option small {
   margin-top: 2px;
-  color: var(--muted);
+  color: #a9b6c6;
   font-family: 'DM Mono', monospace;
   font-size: 8px;
 }
@@ -279,7 +279,7 @@ input:focus-visible {
 
 .difficulty-option small {
   margin-top: 2px;
-  color: var(--muted);
+  color: #a9b6c6;
   font-family: 'DM Mono', monospace;
   font-size: 8px;
 }
